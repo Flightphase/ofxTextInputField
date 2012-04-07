@@ -23,11 +23,11 @@ ofxTextInputField::ofxTextInputField() {
 }
 
 void ofxTextInputField::enable() {
-	ofAddListener(ofEvents.keyPressed, this, &ofxTextInputField::keyPressed);
+	ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
 }
 
 void ofxTextInputField::disable() {
-	ofRemoveListener(ofEvents.keyPressed, this, &ofxTextInputField::keyPressed);
+	ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
 }
 
 void ofxTextInputField::draw(int x, int y) {
