@@ -80,6 +80,9 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
         enable();
         clear();
     }
+    else{
+        disable();
+    }
 }
 
 void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {	
