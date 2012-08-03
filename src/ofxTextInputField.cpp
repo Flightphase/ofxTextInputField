@@ -20,17 +20,25 @@ ofxTextInputField::ofxTextInputField() {
 	cursorPosition=0;
 	cursorx=0;
 	cursory=0;
+    isEnabled = false;
+    bounds = ofRectangle(0,0,100,14);
+    ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
 }
 
 void ofxTextInputField::enable() {
 	ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
+    ofSendMessage(TEXTFIELD_IS_ACTIVE);
+    isEnabled = true;
 }
 
 void ofxTextInputField::disable() {
 	ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
+    ofSendMessage(TEXTFIELD_IS_INACTIVE);
+    isEnabled = false;
 }
 
 void ofxTextInputField::draw(int x, int y) {
+    
 	ofPushMatrix();
 	ofTranslate(x, y);
 	
@@ -38,17 +46,30 @@ void ofxTextInputField::draw(int x, int y) {
 	ofDrawBitmapString(text, 10,10);
 	
 	//draw cursor line
-	ofPushStyle();
-	float timeFrac = 0.5 * sin(3.0f * ofGetElapsedTimef()) + 0.5;
-	
-	ofColor col = ofGetStyle().color;
-	
-	ofSetColor(col.r * timeFrac, col.g * timeFrac, col.b * timeFrac);
-	ofSetLineWidth(3.0f);
-	ofLine(cursorx*8 + 10, 13.7*cursory, cursorx*8 + 10, 10+13.7*cursory);
-	ofPopStyle();
+    if(isEnabled) {
+        ofPushStyle();
+        float timeFrac = 0.5 * sin(3.0f * ofGetElapsedTimef()) + 0.5;
+        
+        ofColor col = ofGetStyle().color;
+        
+        ofSetColor(col.r * timeFrac, col.g * timeFrac, col.b * timeFrac);
+        ofSetLineWidth(3.0f);
+        ofLine(cursorx*8 + 10, 13.7*cursory, cursorx*8 + 10, 10+13.7*cursory);
+        ofPopStyle();
+    }
 	
 	ofPopMatrix();
+}
+
+void ofxTextInputField::draw(){
+    draw(bounds.x, bounds.y);
+}
+
+void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
+    if (bounds.inside(args.x, args.y)) {
+        enable();
+        clear();
+    }
 }
 
 void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {	
@@ -56,8 +77,9 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 
 	int key = args.key;
 	if (key == OF_KEY_RETURN) {
-		return;
-//		ofNotifyEvent(evtEnter, text, this);
+//		return;
+		ofNotifyEvent(evtEnter, text, this);
+        disable();
 //		if (evtEnter.empty()) {
 //			text.insert(text.begin()+cursorPosition, '\n');
 //			cursorPosition++;
