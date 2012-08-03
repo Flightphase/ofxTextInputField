@@ -21,32 +21,46 @@ ofxTextInputField::ofxTextInputField() {
 	cursorx=0;
 	cursory=0;
     isEnabled = false;
-    bounds = ofRectangle(0,0,100,14);
-    ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
+    bounds = ofRectangle(0,0,100,18);
+    drawCursor = false;
+}
+
+void ofxTextInputField::setup(){
+    ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);    
 }
 
 void ofxTextInputField::enable() {
-	ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
-    ofSendMessage(TEXTFIELD_IS_ACTIVE);
-    isEnabled = true;
+    if(!isEnabled){
+        ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
+        ofSendMessage(TEXTFIELD_IS_ACTIVE);
+        isEnabled = true;
+        drawCursor = true;
+    }
 }
 
 void ofxTextInputField::disable() {
-	ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
-    ofSendMessage(TEXTFIELD_IS_INACTIVE);
-    isEnabled = false;
+    if(isEnabled){
+        ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
+        ofSendMessage(TEXTFIELD_IS_INACTIVE);
+        isEnabled = false;
+        drawCursor = false;
+    }
 }
 
-void ofxTextInputField::draw(int x, int y) {
+bool ofxTextInputField::getIsEnabled(){
+    return isEnabled;
+}
+
+void ofxTextInputField::draw() {
     
 	ofPushMatrix();
-	ofTranslate(x, y);
+	ofTranslate(bounds.x, bounds.y);
 	
 	//draw text
-	ofDrawBitmapString(text, 10,10);
+	ofDrawBitmapString(text, 10,12);
 	
 	//draw cursor line
-    if(isEnabled) {
+    if(drawCursor) {
         ofPushStyle();
         float timeFrac = 0.5 * sin(3.0f * ofGetElapsedTimef()) + 0.5;
         
@@ -54,15 +68,11 @@ void ofxTextInputField::draw(int x, int y) {
         
         ofSetColor(col.r * timeFrac, col.g * timeFrac, col.b * timeFrac);
         ofSetLineWidth(3.0f);
-        ofLine(cursorx*8 + 10, 13.7*cursory, cursorx*8 + 10, 10+13.7*cursory);
+        ofLine(cursorx*8 + 10, 13.7*cursory+2, cursorx*8 + 10, 13.7*cursory+12);
         ofPopStyle();
     }
 	
 	ofPopMatrix();
-}
-
-void ofxTextInputField::draw(){
-    draw(bounds.x, bounds.y);
 }
 
 void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){

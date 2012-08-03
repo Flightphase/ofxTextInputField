@@ -2,19 +2,27 @@
 
 //--------------------------------------------------------------
 void testApp::setup() {
-	textInput.enable();
-	
+    
+	textInput.setup();
 	textInput.text = "hello world";
+    textInput.bounds.x = 100;
+    textInput.bounds.y = 100;
 }
 
 //--------------------------------------------------------------
 void testApp::update() {
-	cout << textInput.text << endl;
+	
 }
 
 //--------------------------------------------------------------
 void testApp::draw() {
-	textInput.draw(100, 100);
+    ofBackground(255*.15);
+    
+    ofSetColor(255);
+    ofRect(textInput.bounds);
+    ofNoFill();
+	textInput.draw();
+    
 }
 
 //--------------------------------------------------------------

@@ -11,27 +11,29 @@
 //	MIT license
 //	http://www.opensource.org/licenses/mit-license.php
 //
+
 #pragma once
 
 #include "ofMain.h"
-#include "ofEvents.h"
 
 #define TEXTFIELD_IS_ACTIVE "textfieldIsActive"
 #define TEXTFIELD_IS_INACTIVE "textfieldIsInactive"
 
 class ofxTextInputField {
   public:
-	
 	ofxTextInputField();
 	
+    void setup();
+    
 	void enable();
 	void disable();
-    bool isEnabled;
+    bool getIsEnabled();
+    //can be set manually or otherwise is controlled by enable/disable
+    bool drawCursor;
     
     ofRectangle bounds;
 	
     void draw();
-	void draw(int x, int y);
 		
 	void clear();
 	
@@ -40,8 +42,9 @@ class ofxTextInputField {
 	
 	ofEvent<string> evtEnter;
 	void	keyPressed(ofKeyEventArgs &a);
-	
-protected:
+
+  protected:
+    bool 	isEnabled;
     void    mouseReleased(ofMouseEventArgs& args);
 	int		cursorx, cursory;
 };
