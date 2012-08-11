@@ -2,10 +2,10 @@
 //  textInput.h
 //  textInput
 //
-//  Created by Elliot Woods on 12/09/2011.
+//  Created by Elliot Woods on 09/12/2011.
 //  Copyright 2011 Kimchi and Chips.
 //
-//  modified by James George 2/12/2011
+//  modified by James George 12/2/2011
 //  modified by Momo the Monster 7/10/2012
 //
 //	MIT license
@@ -22,7 +22,8 @@
 class ofxTextInputField {
   public:
 	ofxTextInputField();
-	
+	virtual ~ofxTextInputField();
+    
     void setup();
     
 	void enable();
@@ -44,6 +45,8 @@ class ofxTextInputField {
 	void	keyPressed(ofKeyEventArgs &a);
 
   protected:
+    
+    bool	isSetup;
     bool 	isEnabled;
     void    mouseReleased(ofMouseEventArgs& args);
 	int		cursorx, cursory;

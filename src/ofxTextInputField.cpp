@@ -23,10 +23,23 @@ ofxTextInputField::ofxTextInputField() {
     isEnabled = false;
     bounds = ofRectangle(0,0,100,18);
     drawCursor = false;
+    isSetup = false;
+}
+
+ofxTextInputField::~ofxTextInputField(){
+	if(isSetup){
+        ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);    
+    }
+    if(isEnabled){
+        disable();
+    }
 }
 
 void ofxTextInputField::setup(){
-    ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);    
+    if(!isSetup){
+        isSetup = true;
+	    ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);    
+    }
 }
 
 void ofxTextInputField::enable() {
