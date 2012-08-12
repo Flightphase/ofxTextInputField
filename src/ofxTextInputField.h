@@ -41,10 +41,11 @@ class ofxTextInputField {
 	string text;
 	int cursorPosition;
 	
-	ofEvent<string> evtEnter;
+	ofEvent<string> textChanged;
 	void	keyPressed(ofKeyEventArgs &a);
 
   protected:
+	
     
     bool	isSetup;
     bool 	isEnabled;

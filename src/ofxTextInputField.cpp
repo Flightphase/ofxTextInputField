@@ -27,11 +27,12 @@ ofxTextInputField::ofxTextInputField() {
 }
 
 ofxTextInputField::~ofxTextInputField(){
-	if(isSetup){
-        ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);    
-    }
     if(isEnabled){
         disable();
+    }
+
+	if(isSetup){
+        ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);    
     }
 }
 
@@ -55,6 +56,7 @@ void ofxTextInputField::disable() {
     if(isEnabled){
         ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
         ofSendMessage(TEXTFIELD_IS_INACTIVE);
+        ofNotifyEvent(textChanged, text, this);
         isEnabled = false;
         drawCursor = false;
     }
@@ -90,11 +92,15 @@ void ofxTextInputField::draw() {
 
 void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
     if (bounds.inside(args.x, args.y)) {
-        enable();
-        clear();
+        if(!isEnabled){
+	        enable();
+    	    clear();
+        }
     }
     else{
-        disable();
+        if(isEnabled){
+	        disable();
+        }
     }
 }
 
@@ -103,13 +109,12 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 
 	int key = args.key;
 	if (key == OF_KEY_RETURN) {
-//		return;
-		ofNotifyEvent(evtEnter, text, this);
         disable();
 //		if (evtEnter.empty()) {
 //			text.insert(text.begin()+cursorPosition, '\n');
 //			cursorPosition++;
 //		}
+        return;
 	}
 	
 	if (key >=32 && key <=126) {
