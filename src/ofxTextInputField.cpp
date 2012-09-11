@@ -25,6 +25,7 @@ ofxTextInputField::ofxTextInputField() {
     bounds = ofRectangle(0,0,100,18);
     drawCursor = false;
     isSetup = false;
+	autoClear = false;
 }
 
 ofxTextInputField::~ofxTextInputField(){
@@ -92,9 +93,12 @@ void ofxTextInputField::draw() {
         
         ofColor col = ofGetStyle().color;
         
+		int cursorPos = fontRef == NULL ? 8*cursorx + 10: fontRef->stringWidth(text.substr(0,cursorx))+13;
         ofSetColor(col.r * timeFrac, col.g * timeFrac, col.b * timeFrac);
         ofSetLineWidth(3.0f);
-        ofLine(cursorx*8 + 10, 13.7*cursory+2, cursorx*8 + 10, 13.7*cursory+12);
+		//TODO: multiline with fontRef
+        ofLine(cursorPos, 13.7*cursory+2,
+			   cursorPos, 13.7*cursory+12);
         ofPopStyle();
     }
 	
@@ -105,7 +109,13 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
     if (bounds.inside(args.x, args.y)) {
         if(!isEnabled){
 	        enable();
-    	    clear();
+			if(autoClear){
+	    	    clear();
+			}
+			else{
+				cursory = 0;
+				cursorPosition = cursorx = text.size();
+			}
         }
     }
     else{
@@ -170,5 +180,6 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 
 void ofxTextInputField::clear() {
 	text.clear();
+	cursorx = cursory = 0;
 	cursorPosition=0;
 }

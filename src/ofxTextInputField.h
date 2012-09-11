@@ -60,7 +60,9 @@ class ofxTextInputField {
 	
 	ofEvent<string> textChanged;
 	void keyPressed(ofKeyEventArgs &a);
-
+	
+	bool autoClear;
+	
   protected:
 	
 	OFX_TEXTFIELD_FONT_RENDERER* fontRef;
