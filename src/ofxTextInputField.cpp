@@ -1,15 +1,15 @@
 //
-//  ofxTextInputField.cpp
-//  ofxTextInputField
+//  textInput.cpp
 //
-//  Created by Elliot Woods on 12/09/2011.
+//  Created by Elliot Woods on 09/12/2011.
 //  Copyright 2011 Kimchi and Chips.
 //
-//  modified by James George 2/12/2011
-
+//  modified by James George 12/2/2011
+//  modified by Momo the Monster 7/10/2012
+//  swappable fonts added by James George 9/11/2012
+//
 //	MIT license
 //	http://www.opensource.org/licenses/mit-license.php
-//
 //
 
 #include "ofxTextInputField.h"
@@ -20,6 +20,7 @@ ofxTextInputField::ofxTextInputField() {
 	cursorPosition=0;
 	cursorx=0;
 	cursory=0;
+	fontRef = NULL;
     isEnabled = false;
     bounds = ofRectangle(0,0,100,18);
     drawCursor = false;
@@ -62,6 +63,10 @@ void ofxTextInputField::disable() {
     }
 }
 
+void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER& font){
+	fontRef = &font;
+}
+
 bool ofxTextInputField::getIsEnabled(){
     return isEnabled;
 }
@@ -72,7 +77,13 @@ void ofxTextInputField::draw() {
 	ofTranslate(bounds.x, bounds.y);
 	
 	//draw text
-	ofDrawBitmapString(text, 10,12);
+	if(fontRef == NULL){
+		//boo don't use this
+		ofDrawBitmapString(text, 10,12);
+	}
+	else{
+		fontRef->drawString(text, 10, 12);
+	}
 	
 	//draw cursor line
     if(drawCursor) {
@@ -105,15 +116,12 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
 }
 
 void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {	
-	//add charachter (non unicode sorry!)
-
+	//ew: add charachter (non unicode sorry!)
+	//jg: made a step closer to this with swappable renderers and ofxFTGL -- but need unicode text input...
+	
 	int key = args.key;
 	if (key == OF_KEY_RETURN) {
         disable();
-//		if (evtEnter.empty()) {
-//			text.insert(text.begin()+cursorPosition, '\n');
-//			cursorPosition++;
-//		}
         return;
 	}
 	
