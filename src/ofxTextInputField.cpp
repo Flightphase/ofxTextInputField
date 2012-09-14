@@ -16,10 +16,10 @@
 
 
 ofxTextInputField::ofxTextInputField() {
-	text="";
-	cursorPosition=0;
-	cursorx=0;
-	cursory=0;
+	text = "";
+	cursorPosition = 0;
+	cursorx = 0;
+	cursory = 0;
 	fontRef = NULL;
     isEnabled = false;
     bounds = ofRectangle(0,0,100,18);
@@ -51,6 +51,15 @@ void ofxTextInputField::enable() {
         ofSendMessage(TEXTFIELD_IS_ACTIVE);
         isEnabled = true;
         drawCursor = true;
+		
+		if(autoClear){
+			clear();
+		}
+		else{
+			cursory = 0;
+			cursorPosition = cursorx = text.size();
+		}
+		
     }
 }
 
@@ -85,7 +94,7 @@ void ofxTextInputField::draw() {
 	else{
 		fontRef->drawString(text, 10, 12);
 	}
-	
+
 	//draw cursor line
     if(drawCursor) {
         ofPushStyle();
@@ -106,16 +115,10 @@ void ofxTextInputField::draw() {
 }
 
 void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
+
     if (bounds.inside(args.x, args.y)) {
         if(!isEnabled){
 	        enable();
-			if(autoClear){
-	    	    clear();
-			}
-			else{
-				cursory = 0;
-				cursorPosition = cursorx = text.size();
-			}
         }
     }
     else{
@@ -168,12 +171,14 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	
 	//for multiline:
 	cursorx = cursory = 0;
-	for (int i=0; i<cursorPosition; ++i) {
-		if (*(text.begin()+i) == '\n') {
-			++cursory;
-			cursorx = 0;
-		} else {
-			cursorx++;
+	if(text.size() > 0){
+		for (int i=0; i<cursorPosition; ++i) {
+			if (*(text.begin()+i) == '\n') {
+				++cursory;
+				cursorx = 0;
+			} else {
+				cursorx++;
+			}
 		}
 	}
 }
@@ -181,5 +186,5 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 void ofxTextInputField::clear() {
 	text.clear();
 	cursorx = cursory = 0;
-	cursorPosition=0;
+	cursorPosition = 0;
 }
