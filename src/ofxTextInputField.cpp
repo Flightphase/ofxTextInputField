@@ -22,36 +22,52 @@ ofxTextInputField::ofxTextInputField() {
 	cursory = 0;
 	fontRef = NULL;
     isEnabled = false;
+	isEnabled = false;
     bounds = ofRectangle(0,0,100,18);
     drawCursor = false;
-    isSetup = false;
 	autoClear = false;
+	mouseDownInRect = false;
+    //isSetup = false;
 }
 
 ofxTextInputField::~ofxTextInputField(){
-    if(isEnabled){
+	if(isEnabled){
         disable();
     }
 
-	if(isSetup){
-        ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);    
-    }
 }
 
 void ofxTextInputField::setup(){
-    if(!isSetup){
-        isSetup = true;
-	    ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);    
-    }
+	enable();
 }
 
-void ofxTextInputField::enable() {
-    if(!isEnabled){
+
+void ofxTextInputField::enable(){
+	if(!isEnabled){
+		ofAddListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
+		ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
+		isEnabled = true;
+	}
+}
+
+void ofxTextInputField::disable(){
+	if(isEditing){
+		endEditing();
+	}
+	if(isEnabled){
+        ofRemoveListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
+		ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
+		isEnabled = false;
+    }
+	
+}
+void ofxTextInputField::beginEditing() {
+    if(!isEditing){
         ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
         ofSendMessage(TEXTFIELD_IS_ACTIVE);
-        isEnabled = true;
+        isEditing = true;
         drawCursor = true;
-		
+		cout << "editing!"<<endl;
 		if(autoClear){
 			clear();
 		}
@@ -59,16 +75,15 @@ void ofxTextInputField::enable() {
 			cursory = 0;
 			cursorPosition = cursorx = text.size();
 		}
-		
     }
 }
 
-void ofxTextInputField::disable() {
-    if(isEnabled){
+void ofxTextInputField::endEditing() {
+    if(isEditing){
         ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
         ofSendMessage(TEXTFIELD_IS_INACTIVE);
         ofNotifyEvent(textChanged, text, this);
-        isEnabled = false;
+        isEditing = false;
         drawCursor = false;
     }
 }
@@ -77,8 +92,12 @@ void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER& font){
 	fontRef = &font;
 }
 
+bool ofxTextInputField::getIsEditing(){
+    return isEditing;
+}
+
 bool ofxTextInputField::getIsEnabled(){
-    return isEnabled;
+	return isEnabled;
 }
 
 void ofxTextInputField::draw() {
@@ -114,18 +133,20 @@ void ofxTextInputField::draw() {
 	ofPopMatrix();
 }
 
+void ofxTextInputField::mousePressed(ofMouseEventArgs& args){
+	mouseDownInRect = bounds.inside(args.x, args.y);
+}
+
 void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
 
-    if (bounds.inside(args.x, args.y)) {
-        if(!isEnabled){
-	        enable();
+    if(bounds.inside(args.x, args.y)) {
+        if(!isEditing && mouseDownInRect){
+	        beginEditing();
         }
     }
-    else{
-        if(isEnabled){
-	        disable();
-        }
-    }
+    else if(isEditing){
+		endEditing();
+	}
 }
 
 void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {	
@@ -134,7 +155,7 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	
 	int key = args.key;
 	if (key == OF_KEY_RETURN) {
-        disable();
+        endEditing();
         return;
 	}
 	

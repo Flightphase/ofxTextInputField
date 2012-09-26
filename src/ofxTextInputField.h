@@ -17,7 +17,7 @@
 
 #include "ofMain.h"
 
-//For lack of a type abstraction, this let's you #define a font renderer so
+//For lack of a type abstraction, this lets you #define a font renderer so
 //(like ofxFTGL or ofxFont)
 //to use ofxFTGL use somethinglike this:
 //#define OFX_TEXTFIELD_FONT_RENDERER ofxFTGLFont
@@ -38,15 +38,19 @@ class ofxTextInputField {
   public:
 	ofxTextInputField();
 	virtual ~ofxTextInputField();
-    
-    void setup();
-	
 	//swap in a font!
 	void setFont(OFX_TEXTFIELD_FONT_RENDERER& font);
+    
+    void setup();
 	
 	void enable();
 	void disable();
     bool getIsEnabled();
+	
+	bool getIsEditing();
+	void beginEditing();
+	void endEditing();
+	
     //can be set manually or otherwise is controlled by enable/disable
     bool drawCursor;
     
@@ -67,8 +71,11 @@ class ofxTextInputField {
 	
 	OFX_TEXTFIELD_FONT_RENDERER* fontRef;
 	
-    bool	isSetup;
+//    bool	isSetup;
     bool 	isEnabled;
+	bool	isEditing;
+	bool	mouseDownInRect;
+	void    mousePressed(ofMouseEventArgs& args);
     void    mouseReleased(ofMouseEventArgs& args);
 	int		cursorx, cursory;
 };
