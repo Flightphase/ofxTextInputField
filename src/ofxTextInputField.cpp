@@ -22,7 +22,7 @@ ofxTextInputField::ofxTextInputField() {
 	cursory = 0;
 	fontRef = NULL;
     isEnabled = false;
-	isEnabled = false;
+	isEditing = false;
     bounds = ofRectangle(0,0,100,18);
     drawCursor = false;
 	autoClear = false;
@@ -67,7 +67,6 @@ void ofxTextInputField::beginEditing() {
         ofSendMessage(TEXTFIELD_IS_ACTIVE);
         isEditing = true;
         drawCursor = true;
-		cout << "editing!"<<endl;
 		if(autoClear){
 			clear();
 		}
