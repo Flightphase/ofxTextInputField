@@ -107,10 +107,10 @@ void ofxTextInputField::draw() {
 	//draw text
 	if(fontRef == NULL){
 		//boo don't use this
-		ofDrawBitmapString(text, 10,12);
+		ofDrawBitmapString(text, 5, 12);
 	}
 	else{
-		fontRef->drawString(text, 10, 12);
+		fontRef->drawString(text, 5, fontRef->getLineHeight());
 	}
 
 	//draw cursor line
@@ -123,9 +123,10 @@ void ofxTextInputField::draw() {
 		int cursorPos = fontRef == NULL ? 8*cursorx + 10: fontRef->stringWidth(text.substr(0,cursorx))+13;
         ofSetColor(col.r * timeFrac, col.g * timeFrac, col.b * timeFrac);
         ofSetLineWidth(3.0f);
+		int lineBottom = fontRef == NULL ? 13.7*cursory+12 : 13.7*cursory+fontRef->getLineHeight()+3;
 		//TODO: multiline with fontRef
         ofLine(cursorPos, 13.7*cursory+2,
-			   cursorPos, 13.7*cursory+12);
+			   cursorPos, lineBottom);
         ofPopStyle();
     }
 	
