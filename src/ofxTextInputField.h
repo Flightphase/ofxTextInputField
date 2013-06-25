@@ -11,6 +11,8 @@
 //	http://www.opensource.org/licenses/mit-license.php
 //
 
+#pragma once
+
 #include "ofMain.h"
 #include "ofEvents.h"
 
