@@ -1,5 +1,5 @@
 #include "testApp.h"
-
+ofTrueTypeFont font;
 //--------------------------------------------------------------
 void testApp::setup() {
     
@@ -33,6 +33,8 @@ void testApp::setup() {
 	multilineTextInput.bounds.width = 400;
 	multilineTextInput.bounds.height = 500;
 	multilineTextInput.multiline = true;
+	font.loadFont(OF_TTF_MONO, 10);
+	multilineTextInput.setFont(font);
 	
 	
 }

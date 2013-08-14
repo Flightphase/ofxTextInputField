@@ -33,8 +33,8 @@ ofxTextInputField::ofxTextInputField() {
     drawCursor = false;
 	autoClear = false;
 	mouseDownInRect = false;
-	OFX_TEXTFIELD_FONT_RENDERER *r = new OFX_TEXTFIELD_FONT_RENDERER();
-	setFont(*r);
+
+	fontRef = new ofxTextInput::BitmapFontRenderer();
     //isSetup = false;
 	
 	VERTICAL_PADDING = 3;
@@ -102,7 +102,10 @@ void ofxTextInputField::endEditing() {
 }
 
 void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER& font){
-	fontRef = &font;
+	if(fontRef->isBitmapFont()) {
+		delete fontRef;
+	}
+	fontRef = new ofxTextInput::TypedFontRenderer(&font);
 }
 
 bool ofxTextInputField::getIsEditing(){
@@ -296,40 +299,49 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
 		endEditing();
 	}
 }
-/*
-void ofxTextInputField::setCursorXYFromPosition() {
-	vector<string> lines = ofSplitString(text, "\n");
-	
-	
-	int c = 0;
-	
-	
-	for(int i = 0; i < lines.size(); i++) {
-		if(cursorPosition<=c+lines[i].size()) {
-			cursory = i;
-			cursorx = cursorPosition - c;
-			break;
-		}
-		c += lines[i].size() + 1;
-	}
-}
 
-int ofxTextInputField::getLineForPosition(int pos) {
-	vector<string> lines = ofSplitString(text, "\n");
-	int c = 0;
-	for(int i = 0; i < lines.size(); i++) {
-		if(pos<c+lines[i].size()+1) {
-			return i;
-		}
-		c += lines[i].size() + 1;
-	}
+/*
+#ifdef OF_VERSION_MINOR
+#if OF_VERSION_MINOR>=8 || OF_VERSION_MAJOR>0
+#define USE_GLFW_CLIPBOARD
+
+#endif
+#endif
+
+
+#ifdef USE_GLFW_CLIPBOARD
+
+
+#if (_MSC_VER)
+#include <GLFW/glfw3.h>
+#else
+#include "GLFW/glfw3.h"
+#endif
+
+
+void ofxTextInputFieldSetClipboard(string clippy) {
+	glfwSetClipboardString(GLFWwindow* window, clippy.c_str());
 }
-*/
+string ofxTextInputFieldGetClipboard() {
+	const char *clip = glfwGetClipboardString(GLFWwindow* window);
+	if(clip!=NULL) {
+		return string(clip);
+	} else {
+		return "";
+	}
+
+}
+#endif
+ */
+
+
 void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	//ew: add charachter (non unicode sorry!)
 	//jg: made a step closer to this with swappable renderers and ofxFTGL -- but need unicode text input...
 	lastTimeCursorMoved = ofGetElapsedTimef();
 	int key = args.key;
+	
+	
 	
 	
 	if ((key >=32 && key <=126) || key=='\t' || key==OF_KEY_RETURN) {
@@ -434,6 +446,8 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 		}
 	}
 	
+	
+	
 	if (key==OF_KEY_RIGHT){
 		if(selecting) {
 			cursorPosition = selectionEnd;
@@ -444,6 +458,55 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 			}
 		}
 	}
+	
+	
+	if (key==OF_KEY_UP){
+		if(selecting) {
+			cursorPosition = selectionBegin;
+			selecting = false;
+			
+		} else {
+			if (cursorPosition>0) {
+				int xx, yy;
+				getCursorCoords(cursorPosition, xx, yy);
+				if(yy>0) {
+					yy--;
+					vector<string> lines = ofSplitString(text, "\n");
+					xx = MIN(lines[yy].size()-1, xx);
+					cursorPosition = xx;
+					for(int i = 0; i < yy; i++) cursorPosition += lines[i].size()+1;
+					printf("Cursor position: %d\n", cursorPosition);
+				} else {
+					cursorPosition = 0;
+				}
+			}
+		}
+	}
+	
+	
+	
+	if (key==OF_KEY_DOWN){
+		if(selecting) {
+			cursorPosition = selectionEnd;
+			selecting = false;
+		} else {
+			int xx, yy;
+			getCursorCoords(cursorPosition, xx, yy);
+			vector<string> lines = ofSplitString(text, "\n");
+			yy++;
+			if(yy<lines.size()-1) {
+				
+				xx = MIN(lines[yy].size()-1, xx);
+				cursorPosition = xx;
+				for(int i = 0; i < yy; i++) cursorPosition += lines[i].size()+1;
+				printf("Cursor position: %d\n", cursorPosition);
+			} else {
+				cursorPosition = text.size()-1;
+			}
+		}
+	}
+	
+	
 	
 	
 }

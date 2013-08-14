@@ -36,51 +36,8 @@
 
 
 // TODO: wrapping
-class BitmapFontRenderer {
-public:
-	void drawString(string text, int x, int y) {
-		ofDrawBitmapString(text, x, y);
-	}
-	float getLineHeight() {
-		return 8.f*1.725f;
-	}
+#include "ofxTextInputFieldFontRenderer.h"
 
-
-
-	int getPosition(const string &str, int x) {
-		
-		float lastW = 0;
-		
-		for(int i = 0; i < str.size(); i++) {
-			
-			float w = stringWidth(str.substr(0, i+1));
-
-			if(x<lastW + (w-lastW)/2.f) {
-				
-				return i;
-			}
-			lastW = w;
-			
-		}
-		return str.size();
-	}
-
-
-
-	int stringWidth(const string &str) {
-		int w = 0;
-		for(int i = 0; i < str.size(); i++) {
-			if(str[i]=='\t')
-				w += 8 - (w % 8);
-			else
-				w ++;
-		}
-		return w*8;
-	}
-
-};
-
-#define OFX_TEXTFIELD_FONT_RENDERER BitmapFontRenderer
 class ofxTextInputField {
   public:
 	ofxTextInputField();
@@ -126,7 +83,7 @@ class ofxTextInputField {
 	float lastTimeCursorMoved;
 	int VERTICAL_PADDING;
 	int HORIZONTAL_PADDING;
-	OFX_TEXTFIELD_FONT_RENDERER* fontRef;
+	ofxTextInput::FontRenderer* fontRef;
 	
     bool 	isEnabled;
 	bool	isEditing;
