@@ -28,7 +28,6 @@ void testApp::setup() {
 	"15:\n"
 	"16:\n"
 	"17: }\n";
-	multilineTextInput.text = "one\n\ttwo\nthree\nfour";
     multilineTextInput.bounds.x = 300;
     multilineTextInput.bounds.y = 100;
 	multilineTextInput.bounds.width = 400;

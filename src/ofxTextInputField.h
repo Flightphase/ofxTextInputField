@@ -55,7 +55,6 @@ public:
 			
 			float w = stringWidth(str.substr(0, i+1));
 
-			printf("(i: %d)   x: %d    w + (w-lastW)/2 = %.2f + (%.2f-%.2f)/2.f = %f\n", i, x, w,w,lastW,(w+(w-lastW)/2));
 			if(x<lastW + (w-lastW)/2.f) {
 				
 				return i;
@@ -110,11 +109,15 @@ class ofxTextInputField {
 	string text;
 	int cursorPosition;
 	
+	int selectionBegin;
+	int selectionEnd;
+	bool selecting;
+	
 	ofEvent<string> textChanged;
 	void keyPressed(ofKeyEventArgs &a);
 	
 	bool autoClear;
-	
+	bool autoTab;
 
 	
   protected:
@@ -127,7 +130,8 @@ class ofxTextInputField {
 	bool	isEditing;
 	bool	mouseDownInRect;
 	void    mousePressed(ofMouseEventArgs& args);
-    void    mouseReleased(ofMouseEventArgs& args);
+    void    mouseDragged(ofMouseEventArgs& args);
+	void    mouseReleased(ofMouseEventArgs& args);
 	
 	
 	//int getLineForPosition(int pos);
@@ -135,6 +139,6 @@ class ofxTextInputField {
 	//void setCursorPositionFromXY();
 	//void setCursorFromMouse(int x, int y);
 	//void setCursorXYFromPosition();
-	void getCursorCoords(int &cursorX, int &cursorY);
+	void getCursorCoords(int pos, int &cursorX, int &cursorY);
 	int getCursorPositionFromMouse(int x, int y);
 };

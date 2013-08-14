@@ -17,7 +17,13 @@
 
 ofxTextInputField::ofxTextInputField() {
 	text = "";
+	autoTab = true;
 	cursorPosition = 0;
+	selectionBegin = 0;
+	selectionEnd = 0;
+	selecting = false;
+	
+	
 	fontRef = NULL;
     isEnabled = false;
 	isEditing = false;
@@ -49,6 +55,7 @@ void ofxTextInputField::setup(){
 void ofxTextInputField::enable(){
 	if(!isEnabled){
 		ofAddListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
+		ofAddListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
 		ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
 		isEnabled = true;
 	}
@@ -60,6 +67,7 @@ void ofxTextInputField::disable(){
 	}
 	if(isEnabled){
         ofRemoveListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
+		ofRemoveListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
 		ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
 		isEnabled = false;
     }
@@ -109,11 +117,58 @@ void ofxTextInputField::draw() {
 	ofTranslate(bounds.x, bounds.y);
 
 	
-	fontRef->drawString(text, HORIZONTAL_PADDING, fontRef->getLineHeight()+VERTICAL_PADDING);
+	
 	
 
-	//draw cursor line
-    if(drawCursor) {
+
+	
+	if(selecting) {
+		
+
+		ofPushStyle();
+		// argh, splitting all the time.
+		vector<string> lines = ofSplitString(text, "\n");
+		int beginCursorX, beginCursorY;
+		int endCursorX, endCursorY;
+		getCursorCoords(selectionBegin, beginCursorX, beginCursorY);
+		getCursorCoords(selectionEnd, endCursorX, endCursorY);
+
+		float startX = fontRef->stringWidth(lines[beginCursorY].substr(0,beginCursorX));
+		float endX = fontRef->stringWidth(lines[endCursorY].substr(0, endCursorX));
+
+		ofSetHexColor(0x6988db);
+		ofFill();
+		
+		if(beginCursorY==endCursorY) {
+			// single line selection
+			ofRect(HORIZONTAL_PADDING + startX, VERTICAL_PADDING + fontRef->getLineHeight()*beginCursorY,
+				   endX - startX, fontRef->getLineHeight());
+		} else {
+			
+			// multiline selection.
+			// do first line to the end
+			ofRect(HORIZONTAL_PADDING + startX, VERTICAL_PADDING + fontRef->getLineHeight()*beginCursorY,
+				   fontRef->stringWidth(lines[beginCursorY]) - startX,
+				   fontRef->getLineHeight()
+			);
+			
+			// loop through entirely selected lines
+			for(int i = beginCursorY + 1; i < endCursorY; i++) {
+				ofRect(HORIZONTAL_PADDING, VERTICAL_PADDING + fontRef->getLineHeight()*i,
+					   fontRef->stringWidth(lines[i]),
+					   fontRef->getLineHeight()
+				);
+			}
+			// do last line up to endX
+			ofRect(HORIZONTAL_PADDING, VERTICAL_PADDING + fontRef->getLineHeight()*endCursorY,
+					endX, fontRef->getLineHeight()
+			);
+		}
+		ofPopStyle();
+		
+		
+		//draw cursor line
+    } else if(drawCursor) {
         ofPushStyle();
 		// cursor should only blink when its been idle, and animation
 		// should be a clipped sine wave
@@ -129,11 +184,10 @@ void ofxTextInputField::draw() {
 		
 		// calculate this every loop.
 		int cursorX, cursorY;
-        getCursorCoords(cursorX, cursorY);
+        getCursorCoords(cursorPosition, cursorX, cursorY);
 	//	printf("Pos: %d    X: %d   Y: %d\n", cursorPosition, cursorX, cursorY);
 		int cursorPos = HORIZONTAL_PADDING + fontRef->stringWidth(lines[cursorY].substr(0,cursorX));
         
-		
         
 		int cursorTop = VERTICAL_PADDING + fontRef->getLineHeight()*cursorY;
 		int cursorBottom = cursorTop + fontRef->getLineHeight();
@@ -148,10 +202,14 @@ void ofxTextInputField::draw() {
         ofPopStyle();
     }
 	
+	fontRef->drawString(text, HORIZONTAL_PADDING, fontRef->getLineHeight()+VERTICAL_PADDING);
+	
+	
+	
 	ofPopMatrix();
 }
 
-void ofxTextInputField::getCursorCoords(int &cursorX, int &cursorY) {
+void ofxTextInputField::getCursorCoords(int pos, int &cursorX, int &cursorY) {
 	vector<string> lines = ofSplitString(text, "\n");
 	
 	
@@ -159,9 +217,9 @@ void ofxTextInputField::getCursorCoords(int &cursorX, int &cursorY) {
 	
 	
 	for(int i = 0; i < lines.size(); i++) {
-		if(cursorPosition<=c+lines[i].size()) {
+		if(pos<=c+lines[i].size()) {
 			cursorY = i;
-			cursorX = cursorPosition - c;
+			cursorX = pos - c;
 			return;
 		}
 		c += lines[i].size() + 1;
@@ -206,6 +264,22 @@ void ofxTextInputField::mousePressed(ofMouseEventArgs& args){
 	if(mouseDownInRect) {
 		cursorPosition = getCursorPositionFromMouse(args.x, args.y);
 		lastTimeCursorMoved = ofGetElapsedTimef();
+		selecting = false;
+	}
+}
+
+
+void ofxTextInputField::mouseDragged(ofMouseEventArgs& args) {
+	if(bounds.inside(args.x, args.y)) {
+		int pos = getCursorPositionFromMouse(args.x, args.y);
+		if(pos!=cursorPosition) {
+			selecting = true;
+			selectionBegin = MIN(pos, cursorPosition);
+			selectionEnd = MAX(pos, cursorPosition);
+			
+		} else {
+			selecting = false;
+		}
 	}
 }
 
@@ -255,8 +329,40 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	lastTimeCursorMoved = ofGetElapsedTimef();
 	int key = args.key;
 	if (key == OF_KEY_RETURN) {
-				text.insert(text.begin()+cursorPosition, '\n');
+		text.insert(text.begin()+cursorPosition, '\n');
 		cursorPosition++;
+		
+		if(autoTab) {
+			// how much whitespace is there on the previous line?
+			int xx, yy;
+			getCursorCoords(cursorPosition, xx, yy);
+			vector<string> lines = ofSplitString(text, "\n");
+			if(yy>0) {
+				
+				// collect all the whitespace on the previous line.
+				string previousWhitespace = "";
+				string previousLine = lines[yy-1];
+				int pos = 0;
+				for(int i = 0; i < previousLine.size(); i++) {
+					if(previousLine[i]==' ' || previousLine[i]=='\t') {
+						previousWhitespace += previousLine[i];
+					} else {
+						break;
+					}
+				}
+				// if we have a curly brace as the last char on the previous line
+				// increase the indentation
+				if(previousLine[previousLine.size()-1]=='{') {
+					if(previousWhitespace=="") {
+						previousWhitespace = "\t";
+					} else {
+						previousWhitespace += previousWhitespace[previousWhitespace.size()-1];
+					}
+				}
+				text = text.insert(cursorPosition, previousWhitespace);
+				cursorPosition += previousWhitespace.size();
+			}
+		}
 //        endEditing();
         return;
 	}
@@ -268,9 +374,17 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	
 	
 	if (key==OF_KEY_BACKSPACE) {
-		if (cursorPosition>0) {
-			text.erase(text.begin()+cursorPosition-1);
-			--cursorPosition;
+		if(selecting) {
+			text.erase(text.begin() + selectionBegin,
+					   text.begin() + selectionEnd
+			);
+			cursorPosition = selectionBegin;
+			selecting = false;
+		} else {
+			if (cursorPosition>0) {
+				text.erase(text.begin()+cursorPosition-1);
+				--cursorPosition;
+			}
 		}
 	}
 	
