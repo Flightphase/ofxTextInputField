@@ -23,6 +23,6 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 	
 	
-		ofxTextInputField textInput;
+		ofxTextInputField monoLineTextInput, multilineTextInput;
 		
 };
