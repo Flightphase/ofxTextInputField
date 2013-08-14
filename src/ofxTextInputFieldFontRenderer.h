@@ -63,17 +63,14 @@ namespace ofxTextInput {
 		
 		
 		float spacesWidth(const string &str) {
-			int c = 0;
-			for(int i =0; i < str.size(); i++) {
-				if(str[i]==' ') {
-					c++;
-				}
+			if(str.size()>0 && str[str.size()-1]==' ') {
+				return renderer->getSpaceSize()*renderer->getSize();
 			}
-			return c * renderer->getSpaceSize()*renderer->getSize();
+			return 0;
 		}
 		float stringWidth(const string &str) {
 			
-			return renderer->stringWidth(str) + spacesWidth(str);
+			return renderer->stringWidth(str) + spacesWidth(str) + 3;
 		}
 	};
 	

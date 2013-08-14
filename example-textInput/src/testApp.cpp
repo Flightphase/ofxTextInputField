@@ -7,7 +7,8 @@ void testApp::setup() {
 	monoLineTextInput.text = "hello world";
     monoLineTextInput.bounds.x = 100;
     monoLineTextInput.bounds.y = 100;
-	
+	monoLineTextInput.bounds.height = 40;
+		monoLineTextInput.bounds.width = 188;
 	multilineTextInput.setup();
 	
 	multilineTextInput.text = "0: #include \"testApp.h\"\n"
@@ -33,8 +34,8 @@ void testApp::setup() {
 	multilineTextInput.bounds.width = 400;
 	multilineTextInput.bounds.height = 500;
 	multilineTextInput.multiline = true;
-	font.loadFont(OF_TTF_MONO, 10);
-	multilineTextInput.setFont(font);
+	font.loadFont(OF_TTF_SERIF, 18);
+	monoLineTextInput.setFont(font);
 	
 	
 }
