@@ -1,12 +1,43 @@
 #include "testApp.h"
-
+ofTrueTypeFont font;
 //--------------------------------------------------------------
 void testApp::setup() {
     
-	textInput.setup();
-	textInput.text = "hello world";
-    textInput.bounds.x = 100;
-    textInput.bounds.y = 100;
+	monoLineTextInput.setup();
+	monoLineTextInput.text = "hello world";
+    monoLineTextInput.bounds.x = 100;
+    monoLineTextInput.bounds.y = 100;
+	monoLineTextInput.bounds.height = 40;
+		monoLineTextInput.bounds.width = 188;
+	multilineTextInput.setup();
+	
+	multilineTextInput.text = "0: #include \"testApp.h\"\n"
+	"1: \n"
+	"2: //--------------------------------------------------------------\n"
+	"3: void testApp::setup() {\n"
+	"4: \n"
+	"5:     monoLineTextInput.setup();\n"
+	"6:     monoLineTextInput.text = \"hello world\";\n"
+	"7:     monoLineTextInput.bounds.x = 100;\n"
+	"8:     monoLineTextInput.bounds.y = 100;\n"
+	"9:\n"
+	"10:    multilineTextInput.setup();\n"
+	"11: \n"
+	"12: 	monoLineTextInput.text = \"hello world\";\n"
+	"13:	monoLineTextInput.bounds.x = 100;\n"
+	"14:	monoLineTextInput.bounds.y = 100;\n"
+	"15:\n"
+	"16:\n"
+	"17: }\n";
+    multilineTextInput.bounds.x = 300;
+    multilineTextInput.bounds.y = 100;
+	multilineTextInput.bounds.width = 400;
+	multilineTextInput.bounds.height = 500;
+	multilineTextInput.multiline = true;
+	font.loadFont(OF_TTF_SERIF, 18);
+	monoLineTextInput.setFont(font);
+	
+	
 }
 
 //--------------------------------------------------------------
@@ -19,9 +50,11 @@ void testApp::draw() {
     ofBackground(255*.15);
     
     ofSetColor(255);
-    ofRect(textInput.bounds);
+    ofRect(monoLineTextInput.bounds);
+	ofRect(multilineTextInput.bounds);
     ofNoFill();
-	textInput.draw();
+	monoLineTextInput.draw();
+	multilineTextInput.draw();
     
 }
 

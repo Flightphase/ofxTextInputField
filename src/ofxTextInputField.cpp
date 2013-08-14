@@ -17,17 +17,29 @@
 
 ofxTextInputField::ofxTextInputField() {
 	text = "";
+	multiline = false;
+	autoTab = true;
 	cursorPosition = 0;
-	cursorx = 0;
-	cursory = 0;
+	selectionBegin = 0;
+	selectionEnd = 0;
+	selecting = false;
+	
+	
 	fontRef = NULL;
     isEnabled = false;
 	isEditing = false;
-    bounds = ofRectangle(0,0,100,18);
+    bounds = ofRectangle(0,0,100,22);
+	
     drawCursor = false;
 	autoClear = false;
 	mouseDownInRect = false;
+
+	fontRef = new ofxTextInput::BitmapFontRenderer();
     //isSetup = false;
+	
+	VERTICAL_PADDING = 3;
+	HORIZONTAL_PADDING = 3;
+	lastTimeCursorMoved = ofGetElapsedTimef();
 }
 
 ofxTextInputField::~ofxTextInputField(){
@@ -45,6 +57,7 @@ void ofxTextInputField::setup(){
 void ofxTextInputField::enable(){
 	if(!isEnabled){
 		ofAddListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
+		ofAddListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
 		ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
 		isEnabled = true;
 	}
@@ -56,6 +69,7 @@ void ofxTextInputField::disable(){
 	}
 	if(isEnabled){
         ofRemoveListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
+		ofRemoveListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
 		ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
 		isEnabled = false;
     }
@@ -71,8 +85,8 @@ void ofxTextInputField::beginEditing() {
 			clear();
 		}
 		else{
-			cursory = 0;
-			cursorPosition = cursorx = text.size();
+
+
 		}
     }
 }
@@ -88,7 +102,10 @@ void ofxTextInputField::endEditing() {
 }
 
 void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER& font){
-	fontRef = &font;
+	if(fontRef->isBitmapFont()) {
+		delete fontRef;
+	}
+	fontRef = new ofxTextInput::TypedFontRenderer(&font);
 }
 
 bool ofxTextInputField::getIsEditing(){
@@ -103,38 +120,172 @@ void ofxTextInputField::draw() {
     
 	ofPushMatrix();
 	ofTranslate(bounds.x, bounds.y);
-	
-	//draw text
-	if(fontRef == NULL){
-		//boo don't use this
-		ofDrawBitmapString(text, 5, 12);
-	}
-	else{
-		fontRef->drawString(text, 5, fontRef->getLineHeight());
-	}
 
-	//draw cursor line
-    if(drawCursor) {
+	
+	
+	
+
+
+	
+	if(selecting) {
+		
+
+		ofPushStyle();
+		// argh, splitting all the time.
+		vector<string> lines = ofSplitString(text, "\n");
+		int beginCursorX, beginCursorY;
+		int endCursorX, endCursorY;
+		getCursorCoords(selectionBegin, beginCursorX, beginCursorY);
+		getCursorCoords(selectionEnd, endCursorX, endCursorY);
+
+		float startX = fontRef->stringWidth(lines[beginCursorY].substr(0,beginCursorX));
+		float endX = fontRef->stringWidth(lines[endCursorY].substr(0, endCursorX));
+
+		ofSetHexColor(0x6988db);
+		ofFill();
+		
+		if(beginCursorY==endCursorY) {
+			// single line selection
+			ofRect(HORIZONTAL_PADDING + startX, VERTICAL_PADDING + fontRef->getLineHeight()*beginCursorY,
+				   endX - startX, fontRef->getLineHeight());
+		} else {
+			
+			// multiline selection.
+			// do first line to the end
+			ofRect(HORIZONTAL_PADDING + startX, VERTICAL_PADDING + fontRef->getLineHeight()*beginCursorY,
+				   fontRef->stringWidth(lines[beginCursorY]) - startX,
+				   fontRef->getLineHeight()
+			);
+			
+			// loop through entirely selected lines
+			for(int i = beginCursorY + 1; i < endCursorY; i++) {
+				ofRect(HORIZONTAL_PADDING, VERTICAL_PADDING + fontRef->getLineHeight()*i,
+					   fontRef->stringWidth(lines[i]),
+					   fontRef->getLineHeight()
+				);
+			}
+			// do last line up to endX
+			ofRect(HORIZONTAL_PADDING, VERTICAL_PADDING + fontRef->getLineHeight()*endCursorY,
+					endX, fontRef->getLineHeight()
+			);
+		}
+		ofPopStyle();
+		
+		
+		//draw cursor line
+    } else if(drawCursor) {
         ofPushStyle();
-        float timeFrac = 0.5 * sin(3.0f * ofGetElapsedTimef()) + 0.5;
+		// cursor should only blink when its been idle, and animation
+		// should be a clipped sine wave
+        float timeFrac = 0.5 * ofClamp(cos(6.0f * (ofGetElapsedTimef()-lastTimeCursorMoved))*4, -1, 1) + 0.5;
         
         ofColor col = ofGetStyle().color;
+		ofSetColor(col.r * timeFrac, col.g * timeFrac, col.b * timeFrac);
+		
+		
+		// argh, splitting all the time.
+		vector<string> lines = ofSplitString(text, "\n");
+		
+		
+		// calculate this every loop.
+		int cursorX, cursorY;
+        getCursorCoords(cursorPosition, cursorX, cursorY);
+	//	printf("Pos: %d    X: %d   Y: %d\n", cursorPosition, cursorX, cursorY);
+		int cursorPos = HORIZONTAL_PADDING + fontRef->stringWidth(lines[cursorY].substr(0,cursorX));
         
-		int cursorPos = fontRef == NULL ? 8*cursorx + 10: fontRef->stringWidth(text.substr(0,cursorx))+13;
-        ofSetColor(col.r * timeFrac, col.g * timeFrac, col.b * timeFrac);
-        ofSetLineWidth(3.0f);
-		int lineBottom = fontRef == NULL ? 13.7*cursory+12 : 13.7*cursory+fontRef->getLineHeight()+3;
+        
+		int cursorTop = VERTICAL_PADDING + fontRef->getLineHeight()*cursorY;
+		int cursorBottom = cursorTop + fontRef->getLineHeight();
+		
+		
+		
+		
+		ofSetLineWidth(1.0f);
 		//TODO: multiline with fontRef
-        ofLine(cursorPos, 13.7*cursory+2,
-			   cursorPos, lineBottom);
+        ofLine(cursorPos, cursorTop,
+			   cursorPos, cursorBottom);
         ofPopStyle();
     }
+	
+	fontRef->drawString(text, HORIZONTAL_PADDING, fontRef->getLineHeight()+VERTICAL_PADDING);
+	
+	
 	
 	ofPopMatrix();
 }
 
+void ofxTextInputField::getCursorCoords(int pos, int &cursorX, int &cursorY) {
+	vector<string> lines = ofSplitString(text, "\n");
+	
+	
+	int c = 0;
+	
+	
+	for(int i = 0; i < lines.size(); i++) {
+		if(pos<=c+lines[i].size()) {
+			cursorY = i;
+			cursorX = pos - c;
+			return;
+		}
+		c += lines[i].size() + 1;
+	}
+
+}
+
+/*
+void ofxTextInputField::setCursorPositionFromXY() {
+	cursorPosition = cursorx;
+	vector<string> parts = ofSplitString(text, "\n");
+	for(int i = 0 ; i < cursory; i++) {
+		cursorPosition += parts[i].size() + i; // for carriage returns
+	}
+}
+
+*/
+int ofxTextInputField::getCursorPositionFromMouse(int x, int y) {
+	int cursorX = 0;
+	int cursorY = 0;
+	float pos = y - bounds.y - VERTICAL_PADDING;
+	pos /= fontRef->getLineHeight();
+	int line = pos;
+	cursorY = line;
+	
+	vector<string> lines = ofSplitString(text, "\n");
+	if(cursorY>=lines.size()-1) cursorY = lines.size()-1;
+	if(lines.size()>0) {
+		cursorX = fontRef->getPosition(lines[cursorY], x - HORIZONTAL_PADDING - bounds.x);
+	}
+	int c = 0;
+	for(int i = 0; i < cursorY; i++) {
+		c += lines[i].size() + 1;
+	}
+	c += cursorX;
+	return c;
+}
+
+
 void ofxTextInputField::mousePressed(ofMouseEventArgs& args){
 	mouseDownInRect = bounds.inside(args.x, args.y);
+	if(mouseDownInRect) {
+		cursorPosition = getCursorPositionFromMouse(args.x, args.y);
+		lastTimeCursorMoved = ofGetElapsedTimef();
+		selecting = false;
+	}
+}
+
+
+void ofxTextInputField::mouseDragged(ofMouseEventArgs& args) {
+	if(bounds.inside(args.x, args.y)) {
+		int pos = getCursorPositionFromMouse(args.x, args.y);
+		if(pos!=cursorPosition) {
+			selecting = true;
+			selectionBegin = MIN(pos, cursorPosition);
+			selectionEnd = MAX(pos, cursorPosition);
+			
+		} else {
+			selecting = false;
+		}
+	}
 }
 
 void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
@@ -149,63 +300,218 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
 	}
 }
 
-void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {	
+/*
+#ifdef OF_VERSION_MINOR
+#if OF_VERSION_MINOR>=8 || OF_VERSION_MAJOR>0
+#define USE_GLFW_CLIPBOARD
+
+#endif
+#endif
+
+
+#ifdef USE_GLFW_CLIPBOARD
+
+
+#if (_MSC_VER)
+#include <GLFW/glfw3.h>
+#else
+#include "GLFW/glfw3.h"
+#endif
+
+
+void ofxTextInputFieldSetClipboard(string clippy) {
+	glfwSetClipboardString(GLFWwindow* window, clippy.c_str());
+}
+string ofxTextInputFieldGetClipboard() {
+	const char *clip = glfwGetClipboardString(GLFWwindow* window);
+	if(clip!=NULL) {
+		return string(clip);
+	} else {
+		return "";
+	}
+
+}
+#endif
+ */
+
+
+void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	//ew: add charachter (non unicode sorry!)
 	//jg: made a step closer to this with swappable renderers and ofxFTGL -- but need unicode text input...
-	
+	lastTimeCursorMoved = ofGetElapsedTimef();
 	int key = args.key;
+	
+	
+	
+	
+	if ((key >=32 && key <=126) || key=='\t' || key==OF_KEY_RETURN) {
+		if(selecting) {
+			text.erase(text.begin() + selectionBegin,
+					   text.begin() + selectionEnd
+					   );
+			cursorPosition = selectionBegin;
+			selecting = false;
+		}
+	}
+			
+			
 	if (key == OF_KEY_RETURN) {
-        endEditing();
+		if(!multiline) {
+			endEditing();
+			return;
+		}
+		text.insert(text.begin()+cursorPosition, '\n');
+		cursorPosition++;
+		
+
+		if(autoTab) {
+			// how much whitespace is there on the previous line?
+			int xx, yy;
+			getCursorCoords(cursorPosition, xx, yy);
+			vector<string> lines = ofSplitString(text, "\n");
+			if(yy>0) {
+				
+				// collect all the whitespace on the previous line.
+				string previousWhitespace = "";
+				string previousLine = lines[yy-1];
+				int pos = 0;
+				for(int i = 0; i < previousLine.size(); i++) {
+					if(previousLine[i]==' ' || previousLine[i]=='\t') {
+						previousWhitespace += previousLine[i];
+					} else {
+						break;
+					}
+				}
+				// if we have a curly brace as the last char on the previous line
+				// increase the indentation
+				if(previousLine[previousLine.size()-1]=='{') {
+					if(previousWhitespace=="") {
+						previousWhitespace = "\t";
+					} else {
+						previousWhitespace += previousWhitespace[previousWhitespace.size()-1];
+					}
+				}
+				text = text.insert(cursorPosition, previousWhitespace);
+				cursorPosition += previousWhitespace.size();
+			}
+		}
+
         return;
 	}
 	
-	if (key >=32 && key <=126) {
+	if ((key >=32 && key <=126) || key=='\t') {
 		text.insert(text.begin()+cursorPosition, key);
 		cursorPosition++;
 	}
 	
 	
 	if (key==OF_KEY_BACKSPACE) {
-		if (cursorPosition>0) {
-			text.erase(text.begin()+cursorPosition-1);
-			--cursorPosition;
+		if(selecting) {
+			text.erase(text.begin() + selectionBegin,
+					   text.begin() + selectionEnd
+			);
+			cursorPosition = selectionBegin;
+			selecting = false;
+		} else {
+			if (cursorPosition>0) {
+				text.erase(text.begin()+cursorPosition-1);
+				--cursorPosition;
+			}
 		}
 	}
 	
 	if (key==OF_KEY_DEL) {
-		if (text.size() > cursorPosition) {
-			text.erase(text.begin()+cursorPosition);
+		if(selecting) {
+			text.erase(text.begin() + selectionBegin,
+					   text.begin() + selectionEnd
+					   );
+			cursorPosition = selectionBegin;
+			selecting = false;
+		} else {
+			if (text.size() > cursorPosition) {
+				text.erase(text.begin()+cursorPosition);
+			}
 		}
 	}
 	
 	if (key==OF_KEY_LEFT){
-		if (cursorPosition>0){
-			--cursorPosition;
-		}
-	}
-	
-	if (key==OF_KEY_RIGHT){
-		if (cursorPosition<text.size()){
-			++cursorPosition;	
-		}
-	}
-	
-	//for multiline:
-	cursorx = cursory = 0;
-	if(text.size() > 0){
-		for (int i=0; i<cursorPosition; ++i) {
-			if (*(text.begin()+i) == '\n') {
-				++cursory;
-				cursorx = 0;
-			} else {
-				cursorx++;
+		if(selecting) {
+			cursorPosition = selectionBegin;
+			selecting = false;
+			
+		} else {
+			if (cursorPosition>0){
+				--cursorPosition;
 			}
 		}
 	}
+	
+	
+	
+	if (key==OF_KEY_RIGHT){
+		if(selecting) {
+			cursorPosition = selectionEnd;
+			selecting = false;
+		} else {
+			if (cursorPosition<text.size()){
+				++cursorPosition;
+			}
+		}
+	}
+	
+	
+	if (key==OF_KEY_UP){
+		if(selecting) {
+			cursorPosition = selectionBegin;
+			selecting = false;
+			
+		} else {
+			if (cursorPosition>0) {
+				int xx, yy;
+				getCursorCoords(cursorPosition, xx, yy);
+				if(yy>0) {
+					yy--;
+					vector<string> lines = ofSplitString(text, "\n");
+					xx = MIN(lines[yy].size()-1, xx);
+					cursorPosition = xx;
+					for(int i = 0; i < yy; i++) cursorPosition += lines[i].size()+1;
+					printf("Cursor position: %d\n", cursorPosition);
+				} else {
+					cursorPosition = 0;
+				}
+			}
+		}
+	}
+	
+	
+	
+	if (key==OF_KEY_DOWN){
+		if(selecting) {
+			cursorPosition = selectionEnd;
+			selecting = false;
+		} else {
+			int xx, yy;
+			getCursorCoords(cursorPosition, xx, yy);
+			vector<string> lines = ofSplitString(text, "\n");
+			yy++;
+			if(yy<lines.size()-1) {
+				
+				xx = MIN(lines[yy].size()-1, xx);
+				cursorPosition = xx;
+				for(int i = 0; i < yy; i++) cursorPosition += lines[i].size()+1;
+				printf("Cursor position: %d\n", cursorPosition);
+			} else {
+				cursorPosition = text.size()-1;
+			}
+		}
+	}
+	
+	
+	
+	
 }
 
 void ofxTextInputField::clear() {
 	text.clear();
-	cursorx = cursory = 0;
 	cursorPosition = 0;
 }

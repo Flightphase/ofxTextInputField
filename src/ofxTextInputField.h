@@ -34,6 +34,10 @@
 #define TEXTFIELD_IS_ACTIVE "textfieldIsActive"
 #define TEXTFIELD_IS_INACTIVE "textfieldIsInactive"
 
+
+// TODO: wrapping
+#include "ofxTextInputFieldFontRenderer.h"
+
 class ofxTextInputField {
   public:
 	ofxTextInputField();
@@ -62,19 +66,38 @@ class ofxTextInputField {
 	string text;
 	int cursorPosition;
 	
+	int selectionBegin;
+	int selectionEnd;
+	bool selecting;
+	
 	ofEvent<string> textChanged;
 	void keyPressed(ofKeyEventArgs &a);
 	
 	bool autoClear;
+	bool autoTab;
+	
+	bool multiline;
+
 	
   protected:
-	
-	OFX_TEXTFIELD_FONT_RENDERER* fontRef;
+	float lastTimeCursorMoved;
+	int VERTICAL_PADDING;
+	int HORIZONTAL_PADDING;
+	ofxTextInput::FontRenderer* fontRef;
 	
     bool 	isEnabled;
 	bool	isEditing;
 	bool	mouseDownInRect;
 	void    mousePressed(ofMouseEventArgs& args);
-    void    mouseReleased(ofMouseEventArgs& args);
-	int		cursorx, cursory;
+    void    mouseDragged(ofMouseEventArgs& args);
+	void    mouseReleased(ofMouseEventArgs& args);
+	
+	
+	//int getLineForPosition(int pos);
+
+	//void setCursorPositionFromXY();
+	//void setCursorFromMouse(int x, int y);
+	//void setCursorXYFromPosition();
+	void getCursorCoords(int pos, int &cursorX, int &cursorY);
+	int getCursorPositionFromMouse(int x, int y);
 };
