@@ -118,6 +118,8 @@ class ofxTextInputField {
 	
 	bool autoClear;
 	bool autoTab;
+	
+	bool multiline;
 
 	
   protected:

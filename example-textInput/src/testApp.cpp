@@ -32,6 +32,7 @@ void testApp::setup() {
     multilineTextInput.bounds.y = 100;
 	multilineTextInput.bounds.width = 400;
 	multilineTextInput.bounds.height = 500;
+	multilineTextInput.multiline = true;
 	
 	
 }

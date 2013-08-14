@@ -17,6 +17,7 @@
 
 ofxTextInputField::ofxTextInputField() {
 	text = "";
+	multiline = false;
 	autoTab = true;
 	cursorPosition = 0;
 	selectionBegin = 0;
@@ -28,6 +29,7 @@ ofxTextInputField::ofxTextInputField() {
     isEnabled = false;
 	isEditing = false;
     bounds = ofRectangle(0,0,100,22);
+	
     drawCursor = false;
 	autoClear = false;
 	mouseDownInRect = false;
@@ -328,10 +330,28 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	//jg: made a step closer to this with swappable renderers and ofxFTGL -- but need unicode text input...
 	lastTimeCursorMoved = ofGetElapsedTimef();
 	int key = args.key;
+	
+	
+	if ((key >=32 && key <=126) || key=='\t' || key==OF_KEY_RETURN) {
+		if(selecting) {
+			text.erase(text.begin() + selectionBegin,
+					   text.begin() + selectionEnd
+					   );
+			cursorPosition = selectionBegin;
+			selecting = false;
+		}
+	}
+			
+			
 	if (key == OF_KEY_RETURN) {
+		if(!multiline) {
+			endEditing();
+			return;
+		}
 		text.insert(text.begin()+cursorPosition, '\n');
 		cursorPosition++;
 		
+
 		if(autoTab) {
 			// how much whitespace is there on the previous line?
 			int xx, yy;
@@ -363,7 +383,7 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 				cursorPosition += previousWhitespace.size();
 			}
 		}
-//        endEditing();
+
         return;
 	}
 	
@@ -389,20 +409,39 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	}
 	
 	if (key==OF_KEY_DEL) {
-		if (text.size() > cursorPosition) {
-			text.erase(text.begin()+cursorPosition);
+		if(selecting) {
+			text.erase(text.begin() + selectionBegin,
+					   text.begin() + selectionEnd
+					   );
+			cursorPosition = selectionBegin;
+			selecting = false;
+		} else {
+			if (text.size() > cursorPosition) {
+				text.erase(text.begin()+cursorPosition);
+			}
 		}
 	}
 	
 	if (key==OF_KEY_LEFT){
-		if (cursorPosition>0){
-			--cursorPosition;
+		if(selecting) {
+			cursorPosition = selectionBegin;
+			selecting = false;
+			
+		} else {
+			if (cursorPosition>0){
+				--cursorPosition;
+			}
 		}
 	}
 	
 	if (key==OF_KEY_RIGHT){
-		if (cursorPosition<text.size()){
-			++cursorPosition;
+		if(selecting) {
+			cursorPosition = selectionEnd;
+			selecting = false;
+		} else {
+			if (cursorPosition<text.size()){
+				++cursorPosition;
+			}
 		}
 	}
 	
