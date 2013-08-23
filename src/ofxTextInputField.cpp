@@ -16,6 +16,26 @@
 
 
 ofxTextInputField::ofxTextInputField() {
+    
+    shiftMap[44] = '<';
+    shiftMap[45] = '_';
+    shiftMap[46] = '>';
+    shiftMap[48] = ')';
+    shiftMap[49] = '!';
+    shiftMap[50] = '@';
+    shiftMap[51] = '#';
+    shiftMap[52] = '$';
+    shiftMap[53] = '%';
+    shiftMap[54] = '^';
+    shiftMap[55] = '&';
+    shiftMap[56] = '*';
+    shiftMap[57] = '(';
+    shiftMap[63] = '/';
+    shiftMap[91] = '{';
+    shiftMap[92] = '|';
+    shiftMap[93] = '}';
+    shiftMap[96] = '~';
+    
 	text = "";
 	multiline = false;
 	autoTab = true;
@@ -78,6 +98,7 @@ void ofxTextInputField::disable(){
 void ofxTextInputField::beginEditing() {
     if(!isEditing){
         ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
+        ofAddListener(ofEvents().keyReleased, this, &ofxTextInputField::keyReleased);
         ofSendMessage(TEXTFIELD_IS_ACTIVE);
         isEditing = true;
         drawCursor = true;
@@ -342,7 +363,9 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	int key = args.key;
 	
 	
-	
+    if(key == OF_KEY_SHIFT) {
+        isShifted = true;
+    }
 	
 	if ((key >=32 && key <=126) || key=='\t' || key==OF_KEY_RETURN) {
 		if(selecting) {
@@ -400,7 +423,20 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	}
 	
 	if ((key >=32 && key <=126) || key=='\t') {
-		text.insert(text.begin()+cursorPosition, key);
+        
+        if(isShifted) {
+            
+            char toInsert;
+            if( !(key > 96 && key < 123) && !(key > 65 && key < 90) ) {
+                toInsert = shiftMap[key];//toInsert = key - 32;
+            } else {
+                toInsert = key;
+            }
+            
+            text.insert(text.begin()+cursorPosition, toInsert);
+        } else {
+            text.insert(text.begin()+cursorPosition, key);
+        }
 		cursorPosition++;
 	}
 	
@@ -509,6 +545,15 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	
 	
 	
+}
+
+//void keyReleased(ofKeyEventArgs &a);
+void ofxTextInputField::keyReleased(ofKeyEventArgs &a)
+{
+
+    if(a.key == OF_KEY_SHIFT) {
+        isShifted = false;
+    }
 }
 
 void ofxTextInputField::clear() {

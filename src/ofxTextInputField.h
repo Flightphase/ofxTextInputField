@@ -72,6 +72,7 @@ class ofxTextInputField {
 	
 	ofEvent<string> textChanged;
 	void keyPressed(ofKeyEventArgs &a);
+    void keyReleased(ofKeyEventArgs &a);
 	
 	bool autoClear;
 	bool autoTab;
@@ -100,4 +101,7 @@ class ofxTextInputField {
 	//void setCursorXYFromPosition();
 	void getCursorCoords(int pos, int &cursorX, int &cursorY);
 	int getCursorPositionFromMouse(int x, int y);
+    
+    bool isShifted;
+    map<int, char> shiftMap;
 };
