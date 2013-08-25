@@ -321,7 +321,7 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
 	}
 }
 
-/*
+
 #ifdef OF_VERSION_MINOR
 #if OF_VERSION_MINOR>=8 || OF_VERSION_MAJOR>0
 #define USE_GLFW_CLIPBOARD
@@ -340,11 +340,14 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
 #endif
 
 
-void ofxTextInputFieldSetClipboard(string clippy) {
-	glfwSetClipboardString(GLFWwindow* window, clippy.c_str());
+void ofxTextInputField::setClipboard(string clippy)
+{
+	glfwSetClipboardString( (GLFWwindow*) ofGetWindowPtr()->getCocoaWindow(), clippy.c_str());
 }
-string ofxTextInputFieldGetClipboard() {
-	const char *clip = glfwGetClipboardString(GLFWwindow* window);
+
+string ofxTextInputField::getClipboard()
+{
+	const char *clip = glfwGetClipboardString((GLFWwindow*) ofGetWindowPtr()->getCocoaWindow());
 	if(clip!=NULL) {
 		return string(clip);
 	} else {
@@ -352,9 +355,8 @@ string ofxTextInputFieldGetClipboard() {
 	}
 
 }
-#endif
- */
 
+#endif
 
 void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	//ew: add charachter (non unicode sorry!)
@@ -366,7 +368,21 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
     if(key == OF_KEY_SHIFT) {
         isShifted = true;
     }
+    
+    if(key == 4352) {
+        isCommand = true;
+    }
+    
+    if(key == 'c' && isCommand ) {
+        setClipboard(text.substr(selectionBegin, selectionEnd - selectionBegin));
+        return;
+    }
 	
+    if(key == 'v' && isCommand ) {
+        text.insert(cursorPosition, getClipboard());
+        return;
+    }
+    
 	if ((key >=32 && key <=126) || key=='\t' || key==OF_KEY_RETURN) {
 		if(selecting) {
 			text.erase(text.begin() + selectionBegin,
@@ -547,9 +563,12 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	
 }
 
-//void keyReleased(ofKeyEventArgs &a);
 void ofxTextInputField::keyReleased(ofKeyEventArgs &a)
 {
+    
+    if(a.key == 4352) {
+        isCommand = false;
+    }
 
     if(a.key == OF_KEY_SHIFT) {
         isShifted = false;

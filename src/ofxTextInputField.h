@@ -78,6 +78,9 @@ class ofxTextInputField {
 	bool autoTab;
 	
 	bool multiline;
+    
+    void setClipboard(string clippy);
+    string getClipboard();
 
 	
   protected:
@@ -102,6 +105,6 @@ class ofxTextInputField {
 	void getCursorCoords(int pos, int &cursorX, int &cursorY);
 	int getCursorPositionFromMouse(int x, int y);
     
-    bool isShifted;
+    bool isShifted, isCommand;
     map<int, char> shiftMap;
 };
