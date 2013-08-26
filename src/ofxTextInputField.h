@@ -72,11 +72,15 @@ class ofxTextInputField {
 	
 	ofEvent<string> textChanged;
 	void keyPressed(ofKeyEventArgs &a);
+    void keyReleased(ofKeyEventArgs &a);
 	
 	bool autoClear;
 	bool autoTab;
 	
 	bool multiline;
+    
+    void setClipboard(string clippy);
+    string getClipboard();
 
 	
   protected:
@@ -100,4 +104,7 @@ class ofxTextInputField {
 	//void setCursorXYFromPosition();
 	void getCursorCoords(int pos, int &cursorX, int &cursorY);
 	int getCursorPositionFromMouse(int x, int y);
+    
+    bool isShifted, isCommand;
+    map<int, char> shiftMap;
 };
