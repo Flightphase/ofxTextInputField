@@ -30,6 +30,7 @@ ofxTextInputField::ofxTextInputField() {
     shiftMap[55] = '&';
     shiftMap[56] = '*';
     shiftMap[57] = '(';
+    shiftMap[61] = '+';
     shiftMap[63] = '/';
     shiftMap[91] = '{';
     shiftMap[92] = '|';
@@ -443,7 +444,7 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
         if(isShifted) {
             
             char toInsert;
-            if( !(key > 96 && key < 123) && !(key > 65 && key < 90) ) {
+            if( !(key > 96 && key < 123) && !(key > 65 && key < 90) && shiftMap.find(key) != shiftMap.end() ) {
                 toInsert = shiftMap[key];//toInsert = key - 32;
             } else {
                 toInsert = key;
