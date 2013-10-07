@@ -79,9 +79,10 @@ class ofxTextInputField {
 	
 	bool multiline;
     
+	#ifdef USE_GLFW_CLIPBOARD
     void setClipboard(string clippy);
     string getClipboard();
-
+	#endif
 	
   protected:
 	float lastTimeCursorMoved;
