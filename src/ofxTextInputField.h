@@ -43,7 +43,7 @@ class ofxTextInputField {
 	virtual ~ofxTextInputField();
 
 	/// Always call this first
-    void setup();
+    void setup(bool enableListeners = true);
 
 	/// Change the font used to draw the text
 	void setFont(OFX_TEXTFIELD_FONT_RENDERER& font);
@@ -52,21 +52,27 @@ class ofxTextInputField {
 	void disable();
     bool isEnabled() const;
 	
+	/// Whether the text box is focused and capturing keys
 	void beginEditing();
 	void endEditing();
 	bool isEditing() const;
 
+	void setUseListeners(bool);
+	bool getUseListeners() const;
+
+	/// Draw inside this->bounds
+	void draw();
+
+	/// Clear text
+	void clear();
+
     //can be set manually or otherwise is controlled by enable/disable
     bool drawCursor;
-    
-    ofRectangle bounds;
-	
-    void draw();
-	void clear();
 	
 	string text;
+
+	ofRectangle bounds;
 	int cursorPosition;
-	
 	int selectionBegin;
 	int selectionEnd;
 	bool selecting;
@@ -98,11 +104,17 @@ class ofxTextInputField {
 	
     bool enabled;
 	bool editing;
+	bool useListeners;
+
 	bool mouseDownInRect;
 	
 	void getCursorCoords(int pos, int &cursorX, int &cursorY);
 	int getCursorPositionFromMouse(int x, int y);
     
+	void addListeners();
+	void removeListeners();
+	bool hasListeners;
+
     bool shiftHeld, commandHeld;
     map<int, char> shiftMap;
 };

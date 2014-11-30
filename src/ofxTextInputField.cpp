@@ -40,6 +40,8 @@ ofxTextInputField::ofxTextInputField() {
 	fontRef = NULL;
     this->enabled = false;
 	this->editing = false;
+	this->useListeners = false;
+	this->hasListeners = false;
     bounds = ofRectangle(0,0,100,22);
 	
     drawCursor = false;
@@ -55,15 +57,13 @@ ofxTextInputField::ofxTextInputField() {
 
 //----------
 ofxTextInputField::~ofxTextInputField(){
-	if(this->enabled){
-        disable();
-    }
-
+	this->removeListeners();
 }
 
 //----------
-void ofxTextInputField::setup(){
+void ofxTextInputField::setup(bool enableListeners){
 	enable();
+	this->setUseListeners(enableListeners);
 }
 
 //----------
@@ -77,9 +77,6 @@ void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER& font){
 //----------
 void ofxTextInputField::enable(){
 	if(!this->enabled){
-		ofAddListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
-		ofAddListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
-		ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
 		this->enabled = true;
 	}
 }
@@ -90,9 +87,6 @@ void ofxTextInputField::disable(){
 		endEditing();
 	}
 	if(this->enabled){
-        ofRemoveListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
-		ofRemoveListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
-		ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
 		this->enabled = false;
     }
 	
@@ -106,8 +100,6 @@ bool ofxTextInputField::isEnabled() const {
 //----------
 void ofxTextInputField::beginEditing() {
     if(!this->editing){
-        ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
-        ofAddListener(ofEvents().keyReleased, this, &ofxTextInputField::keyReleased);
         ofSendMessage(TEXTFIELD_IS_ACTIVE);
         this->editing = true;
         drawCursor = true;
@@ -120,17 +112,32 @@ void ofxTextInputField::beginEditing() {
 //----------
 void ofxTextInputField::endEditing() {
     if(this->editing){
-        ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
         ofSendMessage(TEXTFIELD_IS_INACTIVE);
         ofNotifyEvent(textChanged, text, this);
         this->editing = false;
         this->drawCursor = false;
+		this->shiftHeld = false;
+		this->commandHeld = false;
     }
 }
 
 //----------
 bool ofxTextInputField::isEditing() const {
     return this->editing;
+}
+
+//----------
+void ofxTextInputField::setUseListeners(bool useListeners) {
+	if (useListeners) {
+		this->addListeners();
+	} else {
+		this->removeListeners();
+	}
+}
+
+//----------
+bool ofxTextInputField::getUseListeners() const {
+	return this->useListeners;
 }
 
 //----------
@@ -227,108 +234,21 @@ void ofxTextInputField::draw() {
 }
 
 //----------
-void ofxTextInputField::getCursorCoords(int pos, int &cursorX, int &cursorY) {
-	vector<string> lines = ofSplitString(text, "\n");
-	
-	int c = 0;
-	for(int i = 0; i < lines.size(); i++) {
-		if(pos<=c+lines[i].size()) {
-			cursorY = i;
-			cursorX = pos - c;
-			return;
-		}
-		c += lines[i].size() + 1;
-	}
+void ofxTextInputField::clear(){
+	text.clear();
+	cursorPosition = 0;
 }
-
-//----------
-int ofxTextInputField::getCursorPositionFromMouse(int x, int y) {
-	int cursorX = 0;
-	int cursorY = 0;
-	float pos = y - bounds.y - verticalPadding;
-	pos /= fontRef->getLineHeight();
-	int line = pos;
-	cursorY = line;
-	
-	vector<string> lines = ofSplitString(text, "\n");
-	if(cursorY>=lines.size()-1) cursorY = lines.size()-1;
-	if(lines.size()>0) {
-		cursorX = fontRef->getPosition(lines[cursorY], x - horizontalPadding - bounds.x);
-	}
-	int c = 0;
-	for(int i = 0; i < cursorY; i++) {
-		c += lines[i].size() + 1;
-	}
-	c += cursorX;
-	return c;
-}
-
-//----------
-void ofxTextInputField::mousePressed(ofMouseEventArgs& args) {
-	mouseDownInRect = bounds.inside(args.x, args.y);
-	if(mouseDownInRect) {
-		cursorPosition = getCursorPositionFromMouse(args.x, args.y);
-		lastTimeCursorMoved = ofGetElapsedTimef();
-		selecting = false;
-	}
-}
-
-
-//----------
-void ofxTextInputField::mouseDragged(ofMouseEventArgs& args) {
-	if(bounds.inside(args.x, args.y)) {
-		int pos = getCursorPositionFromMouse(args.x, args.y);
-		if(pos!=cursorPosition) {
-			selecting = true;
-			selectionBegin = MIN(pos, cursorPosition);
-			selectionEnd = MAX(pos, cursorPosition);
-		} else {
-			selecting = false;
-		}
-	}
-}
-
-//----------
-void ofxTextInputField::mouseReleased(ofMouseEventArgs& args) {
-    if(bounds.inside(args.x, args.y)) {
-        if(!this->editing && mouseDownInRect) {
-	        beginEditing();
-        }
-    } else {
-		endEditing();
-	}
-}
-
-#ifdef USE_GLFW_CLIPBOARD
-
-#if (_MSC_VER)
-#include <GLFW/glfw3.h>
-#else
-#include "GLFW/glfw3.h"
-#endif
-
-//----------
-void ofxTextInputField::setClipboard(string clippy){
-	glfwSetClipboardString( (GLFWwindow*) ofGetWindowPtr()->getCocoaWindow(), clippy.c_str());
-}
-
-//----------
-string ofxTextInputField::getClipboard(){
-	const char *clip = glfwGetClipboardString((GLFWwindow*) ofGetWindowPtr()->getCocoaWindow());
-	if(clip!=NULL) {
-		return string(clip);
-	} else {
-		return "";
-	}
-
-}
-
-#endif
 
 //----------
 void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	//ew: add charachter (non unicode sorry!)
 	//jg: made a step closer to this with swappable renderers and ofxFTGL -- but need unicode text input...
+
+	//if we're not focused, then ignore the keypress
+	if (!this->editing) {
+		return;
+	}
+
 	lastTimeCursorMoved = ofGetElapsedTimef();
 	int key = args.key;
 	
@@ -400,7 +320,6 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 				cursorPosition += previousWhitespace.size();
 			}
 		}
-
         return;
 	}
 	
@@ -520,6 +439,11 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 
 //----------
 void ofxTextInputField::keyReleased(ofKeyEventArgs &a){
+	//if we're not focused, then ignore the keypress
+	if (!this->editing) {
+		return;
+	}
+
     if(a.key == 4352) {
         this->commandHeld = false;
     }
@@ -530,7 +454,139 @@ void ofxTextInputField::keyReleased(ofKeyEventArgs &a){
 }
 
 //----------
-void ofxTextInputField::clear(){
-	text.clear();
-	cursorPosition = 0;
+void ofxTextInputField::mousePressed(ofMouseEventArgs& args) {
+	if (!this->enabled) {
+		return;
+	}
+
+	mouseDownInRect = bounds.inside(args.x, args.y);
+	if (mouseDownInRect) {
+		cursorPosition = getCursorPositionFromMouse(args.x, args.y);
+		lastTimeCursorMoved = ofGetElapsedTimef();
+		selecting = false;
+	}
+}
+
+//----------
+void ofxTextInputField::mouseDragged(ofMouseEventArgs& args) {
+	if (!this->enabled) {
+		return;
+	}
+
+	if (bounds.inside(args.x, args.y)) {
+		int pos = getCursorPositionFromMouse(args.x, args.y);
+		if (pos != cursorPosition) {
+			selecting = true;
+			selectionBegin = MIN(pos, cursorPosition);
+			selectionEnd = MAX(pos, cursorPosition);
+		}
+		else {
+			selecting = false;
+		}
+	}
+}
+
+//----------
+void ofxTextInputField::mouseReleased(ofMouseEventArgs& args) {
+	if (!this->enabled) {
+		return;
+	}
+
+	if (bounds.inside(args.x, args.y)) {
+		if (!this->editing && mouseDownInRect) {
+			beginEditing();
+		}
+	}
+	else {
+		endEditing();
+	}
+}
+
+#ifdef USE_GLFW_CLIPBOARD
+
+#if (_MSC_VER)
+#include <GLFW/glfw3.h>
+#else
+#include "GLFW/glfw3.h"
+#endif
+
+//----------
+void ofxTextInputField::setClipboard(string clippy){
+	glfwSetClipboardString((GLFWwindow*)ofGetWindowPtr()->getCocoaWindow(), clippy.c_str());
+}
+
+//----------
+string ofxTextInputField::getClipboard(){
+	const char *clip = glfwGetClipboardString((GLFWwindow*)ofGetWindowPtr()->getCocoaWindow());
+	if (clip != NULL) {
+		return string(clip);
+	}
+	else {
+		return "";
+	}
+
+}
+
+#endif
+
+
+//----------
+void ofxTextInputField::getCursorCoords(int pos, int &cursorX, int &cursorY) {
+	vector<string> lines = ofSplitString(text, "\n");
+
+	int c = 0;
+	for (int i = 0; i < lines.size(); i++) {
+		if (pos <= c + lines[i].size()) {
+			cursorY = i;
+			cursorX = pos - c;
+			return;
+		}
+		c += lines[i].size() + 1;
+	}
+}
+
+//----------
+int ofxTextInputField::getCursorPositionFromMouse(int x, int y) {
+	int cursorX = 0;
+	int cursorY = 0;
+	float pos = y - bounds.y - verticalPadding;
+	pos /= fontRef->getLineHeight();
+	int line = pos;
+	cursorY = line;
+
+	vector<string> lines = ofSplitString(text, "\n");
+	if (cursorY >= lines.size() - 1) cursorY = lines.size() - 1;
+	if (lines.size()>0) {
+		cursorX = fontRef->getPosition(lines[cursorY], x - horizontalPadding - bounds.x);
+	}
+	int c = 0;
+	for (int i = 0; i < cursorY; i++) {
+		c += lines[i].size() + 1;
+	}
+	c += cursorX;
+	return c;
+}
+
+//----------
+void ofxTextInputField::addListeners() {
+	if (this->hasListeners) {
+		return;
+	}
+	ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
+	ofAddListener(ofEvents().keyReleased, this, &ofxTextInputField::keyReleased);
+	ofAddListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
+	ofAddListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
+	ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
+}
+
+//----------
+void ofxTextInputField::removeListeners() {
+	if (!this->hasListeners) {
+		return;
+	}
+	ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
+	ofAddListener(ofEvents().keyReleased, this, &ofxTextInputField::keyReleased);
+	ofRemoveListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
+	ofRemoveListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
+	ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
 }
