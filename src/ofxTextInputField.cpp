@@ -109,7 +109,7 @@ void ofxTextInputField::beginEditing() {
         ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
         ofAddListener(ofEvents().keyReleased, this, &ofxTextInputField::keyReleased);
         ofSendMessage(TEXTFIELD_IS_ACTIVE);
-        this->enabled = true;
+        this->editing = true;
         drawCursor = true;
 		if(autoClear) {
 			clear();
@@ -138,6 +138,16 @@ void ofxTextInputField::draw() {
 	ofPushMatrix();
 	ofTranslate(bounds.x, bounds.y);
 	
+	//debug graphics
+	ofPushStyle();
+	ofSetColor(255, 0, 0);
+	this->isEnabled() ? ofFill() : ofNoFill();
+	ofCircle(10, 10, 5);
+	ofSetColor(0, 255, 0);
+	this->isEditing() ? ofFill() : ofNoFill();
+	ofCircle(20, 10, 5);
+	ofPopStyle();
+
 	if(selecting) {
 		ofPushStyle();
 		// argh, splitting all the time.
@@ -272,7 +282,6 @@ void ofxTextInputField::mouseDragged(ofMouseEventArgs& args) {
 			selecting = true;
 			selectionBegin = MIN(pos, cursorPosition);
 			selectionEnd = MAX(pos, cursorPosition);
-			
 		} else {
 			selecting = false;
 		}
@@ -285,7 +294,7 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args) {
         if(!this->editing && mouseDownInRect) {
 	        beginEditing();
         }
-    } else if(this->editing){
+    } else {
 		endEditing();
 	}
 }
@@ -367,7 +376,6 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 			getCursorCoords(cursorPosition, xx, yy);
 			vector<string> lines = ofSplitString(text, "\n");
 			if(yy>0) {
-				
 				// collect all the whitespace on the previous line.
 				string previousWhitespace = "";
 				string previousLine = lines[yy-1];
