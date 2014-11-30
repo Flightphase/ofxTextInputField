@@ -1,22 +1,14 @@
 //
 //  textInput.cpp
 //
-//  Created by Elliot Woods on 09/12/2011.
-//  Copyright 2011 Kimchi and Chips.
-//
-//  modified by James George 12/2/2011
-//  modified by Momo the Monster 7/10/2012
-//  swappable fonts added by James George 9/11/2012
-//
 //	MIT license
 //	http://www.opensource.org/licenses/mit-license.php
 //
 
 #include "ofxTextInputField.h"
 
-
+//----------
 ofxTextInputField::ofxTextInputField() {
-    
     shiftMap[44] = '<';
     shiftMap[45] = '_';
     shiftMap[46] = '>';
@@ -45,7 +37,6 @@ ofxTextInputField::ofxTextInputField() {
 	selectionEnd = 0;
 	selecting = false;
 	
-	
 	fontRef = NULL;
     isEnabled = false;
 	isEditing = false;
@@ -56,13 +47,13 @@ ofxTextInputField::ofxTextInputField() {
 	mouseDownInRect = false;
 
 	fontRef = new ofxTextInput::BitmapFontRenderer();
-    //isSetup = false;
 	
-	VERTICAL_PADDING = 3;
-	HORIZONTAL_PADDING = 3;
+	verticalPadding = 3;
+	horizontalPadding = 3;
 	lastTimeCursorMoved = ofGetElapsedTimef();
 }
 
+//----------
 ofxTextInputField::~ofxTextInputField(){
 	if(isEnabled){
         disable();
@@ -70,11 +61,20 @@ ofxTextInputField::~ofxTextInputField(){
 
 }
 
+//----------
 void ofxTextInputField::setup(){
 	enable();
 }
 
+//----------
+void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER& font){
+	if (fontRef->isBitmapFont()) {
+		delete fontRef;
+	}
+	fontRef = new ofxTextInput::TypedFontRenderer(&font);
+}
 
+//----------
 void ofxTextInputField::enable(){
 	if(!isEnabled){
 		ofAddListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
@@ -84,6 +84,7 @@ void ofxTextInputField::enable(){
 	}
 }
 
+//----------
 void ofxTextInputField::disable(){
 	if(isEditing){
 		endEditing();
@@ -96,6 +97,8 @@ void ofxTextInputField::disable(){
     }
 	
 }
+
+//----------
 void ofxTextInputField::beginEditing() {
     if(!isEditing){
         ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
@@ -113,6 +116,7 @@ void ofxTextInputField::beginEditing() {
     }
 }
 
+//----------
 void ofxTextInputField::endEditing() {
     if(isEditing){
         ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
@@ -123,21 +127,17 @@ void ofxTextInputField::endEditing() {
     }
 }
 
-void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER& font){
-	if(fontRef->isBitmapFont()) {
-		delete fontRef;
-	}
-	fontRef = new ofxTextInput::TypedFontRenderer(&font);
-}
-
+//----------
 bool ofxTextInputField::getIsEditing(){
     return isEditing;
 }
 
+//----------
 bool ofxTextInputField::getIsEnabled(){
 	return isEnabled;
 }
 
+//----------
 void ofxTextInputField::draw() {
     
 	ofPushMatrix();
@@ -213,10 +213,10 @@ void ofxTextInputField::draw() {
 		int cursorX, cursorY;
         getCursorCoords(cursorPosition, cursorX, cursorY);
 	//	printf("Pos: %d    X: %d   Y: %d\n", cursorPosition, cursorX, cursorY);
-		int cursorPos = HORIZONTAL_PADDING + fontRef->stringWidth(lines[cursorY].substr(0,cursorX));
+		int cursorPos = horizontalPadding + fontRef->stringWidth(lines[cursorY].substr(0, cursorX));
         
         
-		int cursorTop = VERTICAL_PADDING + fontRef->getLineHeight()*cursorY;
+		int cursorTop = verticalPadding + fontRef->getLineHeight()*cursorY;
 		int cursorBottom = cursorTop + fontRef->getLineHeight();
 		
 		
@@ -229,13 +229,14 @@ void ofxTextInputField::draw() {
         ofPopStyle();
     }
 	
-	fontRef->drawString(text, HORIZONTAL_PADDING, fontRef->getLineHeight()+VERTICAL_PADDING);
+	fontRef->drawString(text, horizontalPadding, fontRef->getLineHeight() + verticalPadding);
 	
 	
 	
 	ofPopMatrix();
 }
 
+//----------
 void ofxTextInputField::getCursorCoords(int pos, int &cursorX, int &cursorY) {
 	vector<string> lines = ofSplitString(text, "\n");
 	
@@ -254,20 +255,11 @@ void ofxTextInputField::getCursorCoords(int pos, int &cursorX, int &cursorY) {
 
 }
 
-/*
-void ofxTextInputField::setCursorPositionFromXY() {
-	cursorPosition = cursorx;
-	vector<string> parts = ofSplitString(text, "\n");
-	for(int i = 0 ; i < cursory; i++) {
-		cursorPosition += parts[i].size() + i; // for carriage returns
-	}
-}
-
-*/
+//----------
 int ofxTextInputField::getCursorPositionFromMouse(int x, int y) {
 	int cursorX = 0;
 	int cursorY = 0;
-	float pos = y - bounds.y - VERTICAL_PADDING;
+	float pos = y - bounds.y - verticalPadding;
 	pos /= fontRef->getLineHeight();
 	int line = pos;
 	cursorY = line;
@@ -275,7 +267,7 @@ int ofxTextInputField::getCursorPositionFromMouse(int x, int y) {
 	vector<string> lines = ofSplitString(text, "\n");
 	if(cursorY>=lines.size()-1) cursorY = lines.size()-1;
 	if(lines.size()>0) {
-		cursorX = fontRef->getPosition(lines[cursorY], x - HORIZONTAL_PADDING - bounds.x);
+		cursorX = fontRef->getPosition(lines[cursorY], x - horizontalPadding - bounds.x);
 	}
 	int c = 0;
 	for(int i = 0; i < cursorY; i++) {
@@ -285,7 +277,7 @@ int ofxTextInputField::getCursorPositionFromMouse(int x, int y) {
 	return c;
 }
 
-
+//----------
 void ofxTextInputField::mousePressed(ofMouseEventArgs& args){
 	mouseDownInRect = bounds.inside(args.x, args.y);
 	if(mouseDownInRect) {
@@ -296,6 +288,7 @@ void ofxTextInputField::mousePressed(ofMouseEventArgs& args){
 }
 
 
+//----------
 void ofxTextInputField::mouseDragged(ofMouseEventArgs& args) {
 	if(bounds.inside(args.x, args.y)) {
 		int pos = getCursorPositionFromMouse(args.x, args.y);
@@ -310,8 +303,8 @@ void ofxTextInputField::mouseDragged(ofMouseEventArgs& args) {
 	}
 }
 
+//----------
 void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
-
     if(bounds.inside(args.x, args.y)) {
         if(!isEditing && mouseDownInRect){
 	        beginEditing();
@@ -322,17 +315,7 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
 	}
 }
 
-
-#ifdef OF_VERSION_MINOR
-#if OF_VERSION_MINOR>=8 || OF_VERSION_MAJOR>0
-#define USE_GLFW_CLIPBOARD
-
-#endif
-#endif
-
-
 #ifdef USE_GLFW_CLIPBOARD
-
 
 #if (_MSC_VER)
 #include <GLFW/glfw3.h>
@@ -340,14 +323,13 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
 #include "GLFW/glfw3.h"
 #endif
 
-
-void ofxTextInputField::setClipboard(string clippy)
-{
+//----------
+void ofxTextInputField::setClipboard(string clippy){
 	glfwSetClipboardString( (GLFWwindow*) ofGetWindowPtr()->getCocoaWindow(), clippy.c_str());
 }
 
-string ofxTextInputField::getClipboard()
-{
+//----------
+string ofxTextInputField::getClipboard(){
 	const char *clip = glfwGetClipboardString((GLFWwindow*) ofGetWindowPtr()->getCocoaWindow());
 	if(clip!=NULL) {
 		return string(clip);
@@ -359,12 +341,12 @@ string ofxTextInputField::getClipboard()
 
 #endif
 
+//----------
 void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	//ew: add charachter (non unicode sorry!)
 	//jg: made a step closer to this with swappable renderers and ofxFTGL -- but need unicode text input...
 	lastTimeCursorMoved = ofGetElapsedTimef();
 	int key = args.key;
-	
 	
     if(key == OF_KEY_SHIFT) {
         isShifted = true;
@@ -396,7 +378,6 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 		}
 	}
 			
-			
 	if (key == OF_KEY_RETURN) {
 		if(!multiline) {
 			endEditing();
@@ -404,7 +385,6 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 		}
 		text.insert(text.begin()+cursorPosition, '\n');
 		cursorPosition++;
-		
 
 		if(autoTab) {
 			// how much whitespace is there on the previous line?
@@ -459,7 +439,6 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 		cursorPosition++;
 	}
 	
-	
 	if (key==OF_KEY_BACKSPACE) {
 		if(selecting) {
 			text.erase(text.begin() + selectionBegin,
@@ -501,8 +480,6 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 		}
 	}
 	
-	
-	
 	if (key==OF_KEY_RIGHT){
 		if(selecting) {
 			cursorPosition = selectionEnd;
@@ -513,7 +490,6 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 			}
 		}
 	}
-	
 	
 	if (key==OF_KEY_UP){
 		if(selecting) {
@@ -538,8 +514,6 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 		}
 	}
 	
-	
-	
 	if (key==OF_KEY_DOWN){
 		if(selecting) {
 			cursorPosition = selectionEnd;
@@ -560,12 +534,9 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 			}
 		}
 	}
-	
-	
-	
-	
 }
 
+//----------
 void ofxTextInputField::keyReleased(ofKeyEventArgs &a)
 {
     
@@ -578,6 +549,7 @@ void ofxTextInputField::keyReleased(ofKeyEventArgs &a)
     }
 }
 
+//----------
 void ofxTextInputField::clear() {
 	text.clear();
 	cursorPosition = 0;

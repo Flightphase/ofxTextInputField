@@ -3,15 +3,16 @@
 //  textInput
 //
 //  Created by Elliot Woods on 09/12/2011.
-//  Copyright 2011 Kimchi and Chips.
-//
 //  modified by James George 12/2/2011
 //  modified by Momo the Monster 7/10/2012
 //  swappable fonts added by James George 9/11/2012
+//	refactoring and modifications by Elliot Woods on 30/11/2014
 //
 //	MIT license
 //	http://www.opensource.org/licenses/mit-license.php
 //
+
+// jg : TODO: text wrapping
 
 #pragma once
 
@@ -21,7 +22,7 @@
 //(like ofxFTGL or ofxFont)
 //to use ofxFTGL use somethinglike this:
 //#define OFX_TEXTFIELD_FONT_RENDERER ofxFTGLFont
-//#define OFX_TEXTFIELD_FONT_RENDERER "ofxFTGLFont.h"
+//#define OFX_TEXTFIELD_FONT_INCLUDE "ofxFTGLFont.h"
 
 #ifndef OFX_TEXTFIELD_FONT_RENDERER
 #define OFX_TEXTFIELD_FONT_RENDERER ofTrueTypeFont
@@ -34,19 +35,19 @@
 #define TEXTFIELD_IS_ACTIVE "textfieldIsActive"
 #define TEXTFIELD_IS_INACTIVE "textfieldIsInactive"
 
-
-// TODO: wrapping
 #include "ofxTextInputFieldFontRenderer.h"
 
 class ofxTextInputField {
   public:
 	ofxTextInputField();
 	virtual ~ofxTextInputField();
-	//swap in a font!
+
+	/// Always call this first
+    void setup(bool useEvents = trie);
+
+	/// Change the font used to draw the text
 	void setFont(OFX_TEXTFIELD_FONT_RENDERER& font);
-    
-    void setup();
-	
+
 	void enable();
 	void disable();
     bool getIsEnabled();
@@ -73,7 +74,10 @@ class ofxTextInputField {
 	ofEvent<string> textChanged;
 	void keyPressed(ofKeyEventArgs &a);
     void keyReleased(ofKeyEventArgs &a);
-	
+	void mousePressed(ofMouseEventArgs& args);
+	void mouseDragged(ofMouseEventArgs& args);
+	void mouseReleased(ofMouseEventArgs& args);
+
 	bool autoClear;
 	bool autoTab;
 	
@@ -93,9 +97,6 @@ class ofxTextInputField {
     bool 	isEnabled;
 	bool	isEditing;
 	bool	mouseDownInRect;
-	void    mousePressed(ofMouseEventArgs& args);
-    void    mouseDragged(ofMouseEventArgs& args);
-	void    mouseReleased(ofMouseEventArgs& args);
 	
 	
 	//int getLineForPosition(int pos);
