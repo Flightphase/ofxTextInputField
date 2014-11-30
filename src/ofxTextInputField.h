@@ -77,7 +77,9 @@ class ofxTextInputField {
 	int selectionEnd;
 	bool selecting;
 	
-	ofEvent<string> textChanged;
+	ofEvent<string> onTextChange;
+	ofEvent<string> onHitReturn;
+
 	void keyPressed(ofKeyEventArgs &a);
     void keyReleased(ofKeyEventArgs &a);
 	void mousePressed(ofMouseEventArgs& args);
@@ -108,6 +110,8 @@ class ofxTextInputField {
 
 	bool mouseDownInRect;
 	
+	void notifyTextChange();
+	void notifyHitReturn();
 	void getCursorCoords(int pos, int &cursorX, int &cursorY);
 	int getCursorPositionFromMouse(int x, int y);
     

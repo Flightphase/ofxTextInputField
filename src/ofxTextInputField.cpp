@@ -113,7 +113,6 @@ void ofxTextInputField::beginEditing() {
 void ofxTextInputField::endEditing() {
     if(this->editing){
         ofSendMessage(TEXTFIELD_IS_INACTIVE);
-        ofNotifyEvent(textChanged, text, this);
         this->editing = false;
         this->drawCursor = false;
 		this->shiftHeld = false;
@@ -227,6 +226,7 @@ void ofxTextInputField::draw() {
 void ofxTextInputField::clear(){
 	text.clear();
 	cursorPosition = 0;
+	this->notifyTextChange();
 }
 
 //----------
@@ -269,12 +269,14 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 					   );
 			cursorPosition = selectionBegin;
 			selecting = false;
+			this->notifyTextChange();
 		}
 	}
 			
 	if (key == OF_KEY_RETURN) {
 		if(!multiline) {
 			endEditing();
+			this->notifyHitReturn();
 			return;
 		}
 		text.insert(text.begin()+cursorPosition, '\n');
@@ -310,7 +312,8 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 				cursorPosition += previousWhitespace.size();
 			}
 		}
-        return;
+		this->notifyTextChange();
+		return;
 	}
 	
 	if ((key >=32 && key <=126) || key=='\t') {
@@ -328,6 +331,7 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
             text.insert(text.begin()+cursorPosition, key);
         }
 		cursorPosition++;
+		this->notifyTextChange();
 	}
 	
 	if (key==OF_KEY_BACKSPACE) {
@@ -337,10 +341,13 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 			);
 			cursorPosition = selectionBegin;
 			selecting = false;
-		} else {
+			this->notifyTextChange();
+		}
+		else {
 			if (cursorPosition>0) {
 				text.erase(text.begin()+cursorPosition-1);
 				--cursorPosition;
+				this->notifyTextChange();
 			}
 		}
 	}
@@ -352,9 +359,12 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 					   );
 			cursorPosition = selectionBegin;
 			selecting = false;
-		} else {
+			this->notifyTextChange();
+		}
+		else {
 			if (text.size() > cursorPosition) {
 				text.erase(text.begin()+cursorPosition);
+				this->notifyTextChange();
 			}
 		}
 	}
@@ -519,6 +529,16 @@ string ofxTextInputField::getClipboard(){
 
 #endif
 
+
+//----------
+void ofxTextInputField::notifyTextChange() {
+	ofNotifyEvent(this->onTextChange, this->text, this);
+}
+
+//----------
+void ofxTextInputField::notifyHitReturn() {
+	ofNotifyEvent(this->onHitReturn, this->text, this);
+}
 
 //----------
 void ofxTextInputField::getCursorCoords(int pos, int &cursorX, int &cursorY) {
