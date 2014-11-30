@@ -67,11 +67,16 @@ void ofxTextInputField::setup(bool enableListeners){
 }
 
 //----------
-void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER& font){
+void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER & font){
 	if (fontRef->isBitmapFont()) {
 		delete fontRef;
 	}
 	fontRef = new ofxTextInput::TypedFontRenderer(&font);
+}
+
+//----------
+ofxTextInput::FontRenderer * ofxTextInputField::getFontRenderer() {
+	return this->fontRef;
 }
 
 //----------
@@ -500,6 +505,16 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args) {
 	else {
 		endEditing();
 	}
+}
+
+//----------
+float ofxTextInputField::getVerticalPadding() const {
+	return this->verticalPadding;
+}
+
+//----------
+float ofxTextInputField::getHorizontalPadding() const {
+	return this->horizontalPadding;
 }
 
 #ifdef USE_GLFW_CLIPBOARD

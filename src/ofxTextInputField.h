@@ -46,7 +46,8 @@ class ofxTextInputField {
     void setup(bool enableListeners = true);
 
 	/// Change the font used to draw the text
-	void setFont(OFX_TEXTFIELD_FONT_RENDERER& font);
+	void setFont(OFX_TEXTFIELD_FONT_RENDERER & font);
+	ofxTextInput::FontRenderer * getFontRenderer();
 
 	void enable();
 	void disable();
@@ -91,6 +92,9 @@ class ofxTextInputField {
 	
 	bool multiline;
     
+	float getVerticalPadding() const;
+	float getHorizontalPadding() const;
+
 	#ifdef USE_GLFW_CLIPBOARD
     void setClipboard(string clippy);
     string getClipboard();
