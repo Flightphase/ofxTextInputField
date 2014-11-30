@@ -397,7 +397,7 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 			cursorPosition = selectionBegin;
 			selecting = false;
 			
-		} else {
+		} else if (this->multiline) {
 			if (cursorPosition>0) {
 				int xx, yy;
 				getCursorCoords(cursorPosition, xx, yy);
@@ -419,7 +419,7 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 		if(selecting) {
 			cursorPosition = selectionEnd;
 			selecting = false;
-		} else {
+		} else if (this->multiline) {
 			int xx, yy;
 			getCursorCoords(cursorPosition, xx, yy);
 			vector<string> lines = ofSplitString(text, "\n");
