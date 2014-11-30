@@ -43,19 +43,19 @@ class ofxTextInputField {
 	virtual ~ofxTextInputField();
 
 	/// Always call this first
-    void setup(bool useEvents = trie);
+    void setup();
 
 	/// Change the font used to draw the text
 	void setFont(OFX_TEXTFIELD_FONT_RENDERER& font);
 
 	void enable();
 	void disable();
-    bool getIsEnabled();
+    bool isEnabled() const;
 	
-	bool getIsEditing();
 	void beginEditing();
 	void endEditing();
-	
+	bool isEditing() const;
+
     //can be set manually or otherwise is controlled by enable/disable
     bool drawCursor;
     
@@ -90,23 +90,19 @@ class ofxTextInputField {
 	
   protected:
 	float lastTimeCursorMoved;
-	int VERTICAL_PADDING;
-	int HORIZONTAL_PADDING;
+	
+	float verticalPadding;
+	float horizontalPadding;
+
 	ofxTextInput::FontRenderer* fontRef;
 	
-    bool 	isEnabled;
-	bool	isEditing;
-	bool	mouseDownInRect;
+    bool enabled;
+	bool editing;
+	bool mouseDownInRect;
 	
-	
-	//int getLineForPosition(int pos);
-
-	//void setCursorPositionFromXY();
-	//void setCursorFromMouse(int x, int y);
-	//void setCursorXYFromPosition();
 	void getCursorCoords(int pos, int &cursorX, int &cursorY);
 	int getCursorPositionFromMouse(int x, int y);
     
-    bool isShifted, isCommand;
+    bool shiftHeld, commandHeld;
     map<int, char> shiftMap;
 };

@@ -38,8 +38,8 @@ ofxTextInputField::ofxTextInputField() {
 	selecting = false;
 	
 	fontRef = NULL;
-    isEnabled = false;
-	isEditing = false;
+    this->enabled = false;
+	this->editing = false;
     bounds = ofRectangle(0,0,100,22);
 	
     drawCursor = false;
@@ -55,7 +55,7 @@ ofxTextInputField::ofxTextInputField() {
 
 //----------
 ofxTextInputField::~ofxTextInputField(){
-	if(isEnabled){
+	if(this->enabled){
         disable();
     }
 
@@ -76,82 +76,69 @@ void ofxTextInputField::setFont(OFX_TEXTFIELD_FONT_RENDERER& font){
 
 //----------
 void ofxTextInputField::enable(){
-	if(!isEnabled){
+	if(!this->enabled){
 		ofAddListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
 		ofAddListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
 		ofAddListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
-		isEnabled = true;
+		this->enabled = true;
 	}
 }
 
 //----------
 void ofxTextInputField::disable(){
-	if(isEditing){
+	if(this->editing){
 		endEditing();
 	}
-	if(isEnabled){
+	if(this->enabled){
         ofRemoveListener(ofEvents().mousePressed, this, &ofxTextInputField::mousePressed);
 		ofRemoveListener(ofEvents().mouseDragged, this, &ofxTextInputField::mouseDragged);
 		ofRemoveListener(ofEvents().mouseReleased, this, &ofxTextInputField::mouseReleased);
-		isEnabled = false;
+		this->enabled = false;
     }
 	
 }
 
 //----------
+bool ofxTextInputField::isEnabled() const {
+	return this->enabled;
+}
+
+//----------
 void ofxTextInputField::beginEditing() {
-    if(!isEditing){
+    if(!this->editing){
         ofAddListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
         ofAddListener(ofEvents().keyReleased, this, &ofxTextInputField::keyReleased);
         ofSendMessage(TEXTFIELD_IS_ACTIVE);
-        isEditing = true;
+        this->enabled = true;
         drawCursor = true;
-		if(autoClear){
+		if(autoClear) {
 			clear();
-		}
-		else{
-
-
 		}
     }
 }
 
 //----------
 void ofxTextInputField::endEditing() {
-    if(isEditing){
+    if(this->editing){
         ofRemoveListener(ofEvents().keyPressed, this, &ofxTextInputField::keyPressed);
         ofSendMessage(TEXTFIELD_IS_INACTIVE);
         ofNotifyEvent(textChanged, text, this);
-        isEditing = false;
-        drawCursor = false;
+        this->editing = false;
+        this->drawCursor = false;
     }
 }
 
 //----------
-bool ofxTextInputField::getIsEditing(){
-    return isEditing;
-}
-
-//----------
-bool ofxTextInputField::getIsEnabled(){
-	return isEnabled;
+bool ofxTextInputField::isEditing() const {
+    return this->editing;
 }
 
 //----------
 void ofxTextInputField::draw() {
-    
 	ofPushMatrix();
 	ofTranslate(bounds.x, bounds.y);
-
-	
-	
-	
-
-
 	
 	if(selecting) {
-		
-
 		ofPushStyle();
 		// argh, splitting all the time.
 		vector<string> lines = ofSplitString(text, "\n");
@@ -168,26 +155,26 @@ void ofxTextInputField::draw() {
 		
 		if(beginCursorY==endCursorY) {
 			// single line selection
-			ofRect(HORIZONTAL_PADDING + startX, VERTICAL_PADDING + fontRef->getLineHeight()*beginCursorY,
+			ofRect(horizontalPadding + startX, verticalPadding + fontRef->getLineHeight()*beginCursorY,
 				   endX - startX, fontRef->getLineHeight());
 		} else {
 			
 			// multiline selection.
 			// do first line to the end
-			ofRect(HORIZONTAL_PADDING + startX, VERTICAL_PADDING + fontRef->getLineHeight()*beginCursorY,
+			ofRect(horizontalPadding + startX, verticalPadding + fontRef->getLineHeight()*beginCursorY,
 				   fontRef->stringWidth(lines[beginCursorY]) - startX,
 				   fontRef->getLineHeight()
 			);
 			
 			// loop through entirely selected lines
 			for(int i = beginCursorY + 1; i < endCursorY; i++) {
-				ofRect(HORIZONTAL_PADDING, VERTICAL_PADDING + fontRef->getLineHeight()*i,
+				ofRect(horizontalPadding, verticalPadding + fontRef->getLineHeight()*i,
 					   fontRef->stringWidth(lines[i]),
 					   fontRef->getLineHeight()
 				);
 			}
 			// do last line up to endX
-			ofRect(HORIZONTAL_PADDING, VERTICAL_PADDING + fontRef->getLineHeight()*endCursorY,
+			ofRect(horizontalPadding, verticalPadding + fontRef->getLineHeight()*endCursorY,
 					endX, fontRef->getLineHeight()
 			);
 		}
@@ -215,12 +202,8 @@ void ofxTextInputField::draw() {
 	//	printf("Pos: %d    X: %d   Y: %d\n", cursorPosition, cursorX, cursorY);
 		int cursorPos = horizontalPadding + fontRef->stringWidth(lines[cursorY].substr(0, cursorX));
         
-        
 		int cursorTop = verticalPadding + fontRef->getLineHeight()*cursorY;
 		int cursorBottom = cursorTop + fontRef->getLineHeight();
-		
-		
-		
 		
 		ofSetLineWidth(1.0f);
 		//TODO: multiline with fontRef
@@ -230,9 +213,6 @@ void ofxTextInputField::draw() {
     }
 	
 	fontRef->drawString(text, horizontalPadding, fontRef->getLineHeight() + verticalPadding);
-	
-	
-	
 	ofPopMatrix();
 }
 
@@ -240,10 +220,7 @@ void ofxTextInputField::draw() {
 void ofxTextInputField::getCursorCoords(int pos, int &cursorX, int &cursorY) {
 	vector<string> lines = ofSplitString(text, "\n");
 	
-	
 	int c = 0;
-	
-	
 	for(int i = 0; i < lines.size(); i++) {
 		if(pos<=c+lines[i].size()) {
 			cursorY = i;
@@ -252,7 +229,6 @@ void ofxTextInputField::getCursorCoords(int pos, int &cursorX, int &cursorY) {
 		}
 		c += lines[i].size() + 1;
 	}
-
 }
 
 //----------
@@ -278,7 +254,7 @@ int ofxTextInputField::getCursorPositionFromMouse(int x, int y) {
 }
 
 //----------
-void ofxTextInputField::mousePressed(ofMouseEventArgs& args){
+void ofxTextInputField::mousePressed(ofMouseEventArgs& args) {
 	mouseDownInRect = bounds.inside(args.x, args.y);
 	if(mouseDownInRect) {
 		cursorPosition = getCursorPositionFromMouse(args.x, args.y);
@@ -304,13 +280,12 @@ void ofxTextInputField::mouseDragged(ofMouseEventArgs& args) {
 }
 
 //----------
-void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
+void ofxTextInputField::mouseReleased(ofMouseEventArgs& args) {
     if(bounds.inside(args.x, args.y)) {
-        if(!isEditing && mouseDownInRect){
+        if(!this->editing && mouseDownInRect) {
 	        beginEditing();
         }
-    }
-    else if(isEditing){
+    } else if(this->editing){
 		endEditing();
 	}
 }
@@ -349,20 +324,20 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	int key = args.key;
 	
     if(key == OF_KEY_SHIFT) {
-        isShifted = true;
+		this->shiftHeld = true;
     }
     
     if(key == 4352) {
-        isCommand = true;
+		this->commandHeld = true;
     }
 	
     #ifdef USE_GLFW_CLIPBOARD
-    if(key == 'c' && isCommand ) {
+    if(key == 'c' && this->commandHeld) {
         setClipboard(text.substr(selectionBegin, selectionEnd - selectionBegin));
         return;
     }
 	
-    if(key == 'v' && isCommand ) {
+	if(key == 'v' && this->commandHeld) {
         text.insert(cursorPosition, getClipboard());
         return;
     }
@@ -422,8 +397,7 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 	}
 	
 	if ((key >=32 && key <=126) || key=='\t') {
-        
-        if(isShifted) {
+        if(this->shiftHeld) {
             
             char toInsert;
             if( !(key > 96 && key < 123) && !(key > 65 && key < 90) && shiftMap.find(key) != shiftMap.end() ) {
@@ -537,20 +511,18 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 }
 
 //----------
-void ofxTextInputField::keyReleased(ofKeyEventArgs &a)
-{
-    
+void ofxTextInputField::keyReleased(ofKeyEventArgs &a){
     if(a.key == 4352) {
-        isCommand = false;
+        this->commandHeld = false;
     }
 
     if(a.key == OF_KEY_SHIFT) {
-        isShifted = false;
+        this->shiftHeld = false;
     }
 }
 
 //----------
-void ofxTextInputField::clear() {
+void ofxTextInputField::clear(){
 	text.clear();
 	cursorPosition = 0;
 }
