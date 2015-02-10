@@ -323,12 +323,7 @@ void ofxTextInputField::mouseReleased(ofMouseEventArgs& args){
 }
 
 
-#ifdef OF_VERSION_MINOR
-#if OF_VERSION_MINOR>=8 || OF_VERSION_MAJOR>0
-#define USE_GLFW_CLIPBOARD
 
-#endif
-#endif
 
 
 #ifdef USE_GLFW_CLIPBOARD
