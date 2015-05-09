@@ -1,7 +1,7 @@
-#include "testApp.h"
+#include "ofApp.h"
 ofTrueTypeFont font;
 //--------------------------------------------------------------
-void testApp::setup() {
+void ofApp::setup() {
     
 	monoLineTextInput.setup();
 	monoLineTextInput.text = "hello world";
@@ -11,10 +11,10 @@ void testApp::setup() {
 		monoLineTextInput.bounds.width = 188;
 	multilineTextInput.setup();
 	
-	multilineTextInput.text = "0: #include \"testApp.h\"\n"
+	multilineTextInput.text = "0: #include \"ofApp.h\"\n"
 	"1: \n"
 	"2: //--------------------------------------------------------------\n"
-	"3: void testApp::setup() {\n"
+	"3: void ofApp::setup() {\n"
 	"4: \n"
 	"5:     monoLineTextInput.setup();\n"
 	"6:     monoLineTextInput.text = \"hello world\";\n"
@@ -41,12 +41,12 @@ void testApp::setup() {
 }
 
 //--------------------------------------------------------------
-void testApp::update() {
+void ofApp::update() {
 	
 }
 
 //--------------------------------------------------------------
-void testApp::draw() {
+void ofApp::draw() {
     ofBackground(255*.15);
     
     ofSetColor(255);
@@ -59,46 +59,46 @@ void testApp::draw() {
 }
 
 //--------------------------------------------------------------
-void testApp::keyPressed(int key) {
+void ofApp::keyPressed(int key) {
 
 }
 
 //--------------------------------------------------------------
-void testApp::keyReleased(int key) {
+void ofApp::keyReleased(int key) {
 
 }
 
 //--------------------------------------------------------------
-void testApp::mouseMoved(int x, int y) {
+void ofApp::mouseMoved(int x, int y) {
 
 }
 
 //--------------------------------------------------------------
-void testApp::mouseDragged(int x, int y, int button) {
+void ofApp::mouseDragged(int x, int y, int button) {
 
 }
 
 //--------------------------------------------------------------
-void testApp::mousePressed(int x, int y, int button) {
+void ofApp::mousePressed(int x, int y, int button) {
 
 }
 
 //--------------------------------------------------------------
-void testApp::mouseReleased(int x, int y, int button) {
+void ofApp::mouseReleased(int x, int y, int button) {
 
 }
 
 //--------------------------------------------------------------
-void testApp::windowResized(int w, int h) {
+void ofApp::windowResized(int w, int h) {
 
 }
 
 //--------------------------------------------------------------
-void testApp::gotMessage(ofMessage msg) {
+void ofApp::gotMessage(ofMessage msg) {
 
 }
 
 //--------------------------------------------------------------
-void testApp::dragEvent(ofDragInfo dragInfo) { 
+void ofApp::dragEvent(ofDragInfo dragInfo) { 
 
 }
