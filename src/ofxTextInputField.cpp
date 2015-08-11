@@ -517,6 +517,18 @@ float ofxTextInputField::getHorizontalPadding() const {
 	return this->horizontalPadding;
 }
 
+//----------
+void ofxTextInputField::setVerticalPadding(float vp){
+    verticalPadding = vp;
+}
+//----------
+void ofxTextInputField::setHorizontalPadding(float hp){
+    horizontalPadding = hp;
+}
+
+
+
+
 #ifdef USE_GLFW_CLIPBOARD
 
 #if (_MSC_VER)

@@ -94,7 +94,10 @@ class ofxTextInputField {
     
 	float getVerticalPadding() const;
 	float getHorizontalPadding() const;
-
+    
+    void setVerticalPadding(float vp);
+    void setHorizontalPadding(float hp);
+    
 	#ifdef USE_GLFW_CLIPBOARD
     void setClipboard(string clippy);
     string getClipboard();
