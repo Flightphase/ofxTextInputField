@@ -98,7 +98,7 @@ class ofxTextInputField {
     void setVerticalPadding(float vp);
     void setHorizontalPadding(float hp);
     
-	#ifdef USE_GLFW_CLIPBOARD
+	#if defined(USE_GLFW_CLIPBOARD) && defined(TARGET_OSX)
     void setClipboard(string clippy);
     string getClipboard();
 	#endif
