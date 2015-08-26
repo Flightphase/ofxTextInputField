@@ -255,7 +255,7 @@ void ofxTextInputField::keyPressed(ofKeyEventArgs& args) {
 		this->commandHeld = true;
     }
 	
-    #ifdef USE_GLFW_CLIPBOARD
+#if defined(USE_GLFW_CLIPBOARD) && defined(TARGET_OSX)
     if(key == 'c' && this->commandHeld) {
         setClipboard(text.substr(selectionBegin, selectionEnd - selectionBegin));
         return;
@@ -516,6 +516,18 @@ float ofxTextInputField::getVerticalPadding() const {
 float ofxTextInputField::getHorizontalPadding() const {
 	return this->horizontalPadding;
 }
+
+//----------
+void ofxTextInputField::setVerticalPadding(float vp){
+    verticalPadding = vp;
+}
+//----------
+void ofxTextInputField::setHorizontalPadding(float hp){
+    horizontalPadding = hp;
+}
+
+
+
 
 #ifdef USE_GLFW_CLIPBOARD
 
